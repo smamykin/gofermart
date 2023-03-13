@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"github.com/golang/mock/gomock"
+	"github.com/smamykin/gofermart/internal/entity"
 	"github.com/smamykin/gofermart/internal/service"
 	mock "github.com/smamykin/gofermart/tests/mock"
 	"github.com/stretchr/testify/require"
@@ -13,9 +14,9 @@ func TestUserService_CreateNewUser(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	type testCase struct {
-		credentials       service.Credentials
-		storageWillReturn []error
-		expected          error
+		credentials          service.Credentials
+		upsertUserWillReturn []error
+		expected             error
 	}
 	tests := map[string]testCase{
 		"general case": {
@@ -38,12 +39,17 @@ func TestUserService_CreateNewUser(t *testing.T) {
 			[]error{errors.New("some error")},
 			errors.New("some error"),
 		},
+		"if user exists already": {
+			service.Credentials{Login: "already_exists", Pwd: "pancake"},
+			[]error{},
+			service.NewBadCredentialsError("login"),
+		},
 	}
 
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
 			us := service.UserService{
-				Storage:       getStorageInterfaceMock(ctrl, tt.credentials, tt.storageWillReturn),
+				Storage:       getStorageInterfaceMock(ctrl, tt.credentials, tt.upsertUserWillReturn),
 				HashGenerator: getHashGeneratorInterfaceMock(ctrl),
 			}
 			err := us.CreateNewUser(tt.credentials)
@@ -62,17 +68,28 @@ func getHashGeneratorInterfaceMock(ctrl *gomock.Controller) service.HashGenerato
 	return m
 }
 
-func getStorageInterfaceMock(ctrl *gomock.Controller, credentials service.Credentials, willReturn []error) service.StorageInterface {
+func getStorageInterfaceMock(ctrl *gomock.Controller, credentials service.Credentials, upsertUserWillReturn []error) service.StorageInterface {
 	m := mock.NewMockStorageInterface(ctrl)
-	//todo should get the hash of the pwd
 	pwdHash, _ := hashFuncForTest(credentials.Pwd)
 	call := m.EXPECT().
 		UpsertUser(gomock.Eq(credentials.Login), gomock.Eq(pwdHash)).
-		Times(len(willReturn))
+		Times(len(upsertUserWillReturn))
 
-	for _, err := range willReturn {
+	for _, err := range upsertUserWillReturn {
 		call.Return(err)
 	}
+	m.EXPECT().GetUserByLogin(gomock.Any()).DoAndReturn(func(login string) (u entity.User, err error) {
+		if login == "already_exists" {
+			return entity.User{
+				ID:    22,
+				Login: login,
+				Pwd:   "not matter",
+			}, nil
+		}
+
+		return u, service.ErrNoRows
+
+	}).AnyTimes()
 
 	return m
 }

@@ -8,6 +8,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
+	entity "github.com/smamykin/gofermart/internal/entity"
 )
 
 // MockStorageInterface is a mock of StorageInterface interface.
@@ -31,6 +32,21 @@ func NewMockStorageInterface(ctrl *gomock.Controller) *MockStorageInterface {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockStorageInterface) EXPECT() *MockStorageInterfaceMockRecorder {
 	return m.recorder
+}
+
+// GetUserByLogin mocks base method.
+func (m *MockStorageInterface) GetUserByLogin(login string) (entity.User, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserByLogin", login)
+	ret0, _ := ret[0].(entity.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetUserByLogin indicates an expected call of GetUserByLogin.
+func (mr *MockStorageInterfaceMockRecorder) GetUserByLogin(login interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByLogin", reflect.TypeOf((*MockStorageInterface)(nil).GetUserByLogin), login)
 }
 
 // UpsertUser mocks base method.

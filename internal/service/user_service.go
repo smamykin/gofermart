@@ -1,9 +1,14 @@
 package service
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+	"github.com/smamykin/gofermart/internal/entity"
+)
 
 type StorageInterface interface {
 	UpsertUser(login string, pwd string) error
+	GetUserByLogin(login string) (entity.User, error)
 }
 
 type HashGeneratorInterface interface {
@@ -22,6 +27,8 @@ func (b BadCredentialsError) Error() string {
 	return b.msg
 }
 
+var ErrNoRows = errors.New("error no rows")
+
 type UserService struct {
 	Storage       StorageInterface
 	HashGenerator HashGeneratorInterface
@@ -39,6 +46,16 @@ func (u UserService) CreateNewUser(credentials Credentials) error {
 
 	if "" == credentials.Login {
 		return NewBadCredentialsError("login")
+	}
+
+	_, err := u.Storage.GetUserByLogin(credentials.Login)
+	if err == nil {
+		// the user exists already
+		return NewBadCredentialsError("login")
+	}
+
+	if err != ErrNoRows {
+		return err
 	}
 
 	pwdHash, err := u.HashGenerator.Generate(credentials.Pwd)
