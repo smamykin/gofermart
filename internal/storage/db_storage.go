@@ -16,9 +16,20 @@ type DBStorage struct {
 	db *sql.DB
 }
 
+var upsertUserSQL = `
+	INSERT INTO "user" (login, pwd) 
+	VALUES ($1, $2)
+	ON CONFLICT (login) DO UPDATE 
+		SET pwd = EXCLUDED.pwd
+`
+
 func (d *DBStorage) UpsertUser(login string, pwd string) error {
-	// todo implement me
-	panic("implement me")
+	_, err := d.db.Exec(upsertUserSQL, login, pwd)
+
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
