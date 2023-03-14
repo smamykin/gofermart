@@ -6,17 +6,17 @@ import (
 	"github.com/smamykin/gofermart/internal/entity"
 	"github.com/smamykin/gofermart/internal/service"
 	"github.com/smamykin/gofermart/internal/storage"
+	"github.com/smamykin/gofermart/tests/Functional/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
 
 func TestDBStorage_UpsertUser(t *testing.T) {
-	db, err := sql.Open("pgx", "postgres://postgres:postgres@localhost:54323/postgres")
-	require.Nil(t, err)
+	db := utils.GetDB(t)
 	defer db.Close()
+	utils.TruncateTable(t, db)
 
-	truncateTable(t, db)
 	store, err := storage.NewDBStorage(db)
 	require.Nil(t, err)
 
@@ -38,11 +38,10 @@ func TestDBStorage_UpsertUser(t *testing.T) {
 }
 
 func TestDBStorage_GetUserByLogin(t *testing.T) {
-	db, err := sql.Open("pgx", "postgres://postgres:postgres@localhost:54323/postgres")
-	require.Nil(t, err)
+	db := utils.GetDB(t)
 	defer db.Close()
+	utils.TruncateTable(t, db)
 
-	truncateTable(t, db)
 	expected := entity.User{
 		ID:    1,
 		Login: "foo",
@@ -62,11 +61,6 @@ func TestDBStorage_GetUserByLogin(t *testing.T) {
 
 func insertUser(t *testing.T, db *sql.DB, expected entity.User) {
 	_, err := db.Exec(`INSERT INTO "user" (login, pwd) VALUES ($1,$2);`, expected.Login, expected.Pwd)
-	require.Nil(t, err)
-}
-
-func truncateTable(t *testing.T, db *sql.DB) {
-	_, err := db.Exec(`TRUNCATE TABLE public."user" RESTART IDENTITY;`)
 	require.Nil(t, err)
 }
 

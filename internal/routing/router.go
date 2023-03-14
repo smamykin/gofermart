@@ -1,15 +1,15 @@
-package router
+package routing
 
 import (
 	"github.com/rs/zerolog"
-	"github.com/smamykin/gofermart/internal/controller"
 	"github.com/smamykin/gofermart/internal/storage"
+	"github.com/smamykin/gofermart/pkg/logger"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
-func SetupRouter(storage *storage.DBStorage, logger *zerolog.Logger) *gin.Engine {
+func SetupRouter(dbStorage *storage.DBStorage, zLogger *zerolog.Logger) *gin.Engine {
 	// Disable Console Color
 	// gin.DisableConsoleColor()
 	r := gin.Default()
@@ -19,7 +19,7 @@ func SetupRouter(storage *storage.DBStorage, logger *zerolog.Logger) *gin.Engine
 		type metric struct {
 			dbError error
 		}
-		err := storage.Healthcheck(c)
+		err := dbStorage.Healthcheck(c)
 		if err != nil {
 			c.JSON(http.StatusServiceUnavailable, metric{
 				dbError: err,
@@ -32,7 +32,7 @@ func SetupRouter(storage *storage.DBStorage, logger *zerolog.Logger) *gin.Engine
 		})
 	})
 
-	controller.NewUserController().AddHandlers(r)
+	NewUserController(dbStorage, &logger.ZeroLogAdapter{Logger: zLogger}).AddHandlers(r)
 
 	return r
 }

@@ -8,6 +8,7 @@ require (
 	github.com/jackc/pgx/v5 v5.3.1
 	github.com/rs/zerolog v1.29.0
 	github.com/stretchr/testify v1.8.2
+	golang.org/x/crypto v0.7.0
 )
 
 require (
@@ -33,7 +34,6 @@ require (
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect
 	golang.org/x/arch v0.3.0 // indirect
-	golang.org/x/crypto v0.7.0 // indirect
 	golang.org/x/net v0.8.0 // indirect
 	golang.org/x/sys v0.6.0 // indirect
 	golang.org/x/text v0.8.0 // indirect

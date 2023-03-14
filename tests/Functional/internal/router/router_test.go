@@ -4,8 +4,9 @@ import (
 	"database/sql"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/rs/zerolog"
-	"github.com/smamykin/gofermart/internal/router"
+	"github.com/smamykin/gofermart/internal/routing"
 	"github.com/smamykin/gofermart/internal/storage"
+	"github.com/smamykin/gofermart/tests/Functional/utils"
 	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
@@ -22,7 +23,7 @@ func TestPingRoute(t *testing.T) {
 	dbStorage, err := storage.NewDBStorage(db)
 	require.Nil(t, err)
 	logger := zerolog.Nop()
-	r := router.SetupRouter(dbStorage, &logger)
+	r := routing.SetupRouter(dbStorage, &logger)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping", nil)
@@ -33,18 +34,17 @@ func TestPingRoute(t *testing.T) {
 }
 
 func TestRegisterRoute(t *testing.T) {
-	db, err := sql.Open("pgx", "postgres://postgres:postgres@localhost:54323/postgres")
-	require.Nil(t, err)
+	db := utils.GetDB(t)
 	defer db.Close()
+	utils.TruncateTable(t, db)
 
 	dbStorage, err := storage.NewDBStorage(db)
 	require.Nil(t, err)
 	logger := zerolog.Nop()
-	r := router.SetupRouter(dbStorage, &logger)
+	r := routing.SetupRouter(dbStorage, &logger)
 
 	w := httptest.NewRecorder()
-	//req, _ := http.NewRequest("POST", "/api/user/register", strings.NewReader(`{"login":"cheesecake", "password": "pancake"}`))
-	req, _ := http.NewRequest("POST", "/api/user/register", strings.NewReader(`{"login":"cheesecake"`))
+	req, _ := http.NewRequest("POST", "/api/user/register", strings.NewReader(`{"login":"cheesecake", "password": "pancake"}`))
 	r.ServeHTTP(w, req)
 
 	require.Equal(t, 200, w.Code)
@@ -54,7 +54,7 @@ func TestRegisterRoute(t *testing.T) {
 func assertUser(t *testing.T, db *sql.DB, login string) {
 	getOneSQL := `
 		SELECT id, login, pwd
-		FROM public."user"
+		FROM "user"
 		WHERE login = $1
 	`
 	row := db.QueryRow(getOneSQL, login)

@@ -39,7 +39,7 @@ type Credentials struct {
 	Pwd   string `json:"password"`
 }
 
-func (u UserService) CreateNewUser(credentials Credentials) error {
+func (u *UserService) CreateNewUser(credentials Credentials) error {
 	if "" == credentials.Pwd {
 		return NewBadCredentialsError("password")
 	}
