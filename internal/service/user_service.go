@@ -65,3 +65,8 @@ func (u *UserService) CreateNewUser(credentials Credentials) error {
 
 	return u.Storage.UpsertUser(credentials.Login, pwdHash)
 }
+
+func (u *UserService) GetUserIfPwdValid(credentials Credentials) (user entity.User, err error) {
+
+	return user, err
+}

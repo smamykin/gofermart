@@ -6,6 +6,8 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/smamykin/gofermart/internal/routing"
 	"github.com/smamykin/gofermart/internal/storage"
+	"github.com/smamykin/gofermart/pkg/pwdhash"
+	"github.com/smamykin/gofermart/pkg/token"
 	"github.com/smamykin/gofermart/tests/Functional/utils"
 	"github.com/stretchr/testify/require"
 	"net/http"
@@ -14,7 +16,7 @@ import (
 	"testing"
 )
 
-func TestPingRoute(t *testing.T) {
+func TestPing(t *testing.T) {
 	//todo replace with database from env var
 	db := utils.GetDB(t)
 	defer db.Close()
@@ -32,7 +34,7 @@ func TestPingRoute(t *testing.T) {
 	require.Equal(t, 200, w.Code)
 }
 
-func TestRegisterRoute(t *testing.T) {
+func TestRegister(t *testing.T) {
 	db := utils.GetDB(t)
 	defer db.Close()
 	utils.TruncateTable(t, db)
@@ -48,6 +50,45 @@ func TestRegisterRoute(t *testing.T) {
 
 	require.Equal(t, 200, w.Code)
 	assertUser(t, db, "cheesecake")
+}
+
+func TestLogin(t *testing.T) {
+	db := utils.GetDB(t)
+	defer db.Close()
+	utils.TruncateTable(t, db)
+
+	dbStorage, err := storage.NewDBStorage(db)
+	require.Nil(t, err)
+
+	pwd := "pancake"
+	login := "cheesecake"
+	addUserToDB(t, pwd, login, dbStorage)
+
+	logger := zerolog.Nop()
+	r := routing.SetupRouter(dbStorage, &logger)
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("POST", "/api/user/login", strings.NewReader(`{"login":"cheesecake", "password": "pancake"}`))
+	r.ServeHTTP(w, req)
+
+	require.Equal(t, 200, w.Code, w.Body.String())
+	require.Equal(t, `{"message":"success"}`, w.Body.String())
+
+	bearerToken := w.Header().Get("Authorization")
+	require.NotSame(t, "", bearerToken)
+	require.Equal(t, 2, len(strings.Split(bearerToken, " ")))
+
+	tokenString := strings.Split(bearerToken, " ")[1]
+	tkn, err := token.ParseTokenString(tokenString)
+	require.Nil(t, err)
+	require.Equal(t, true, tkn.Valid)
+}
+
+func addUserToDB(t *testing.T, pwd string, login string, dbStorage *storage.DBStorage) {
+	hg := pwdhash.HashGenerator{}
+	pwdHash, err := hg.Generate(pwd)
+	require.Nil(t, err)
+	err = dbStorage.UpsertUser(login, pwdHash)
+	require.Nil(t, err)
 }
 
 func assertUser(t *testing.T, db *sql.DB, login string) {
