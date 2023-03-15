@@ -17,19 +17,17 @@ func SetupRouter(dbStorage *storage.DBStorage, zLogger *zerolog.Logger) *gin.Eng
 	// Ping test
 	r.GET("/ping", func(c *gin.Context) {
 		type metric struct {
-			dbError error
+			DBError string
 		}
 		err := dbStorage.Healthcheck(c)
 		if err != nil {
 			c.JSON(http.StatusServiceUnavailable, metric{
-				dbError: err,
+				DBError: err.Error(),
 			})
 			return
 		}
 
-		c.JSON(http.StatusOK, metric{
-			dbError: nil,
-		})
+		c.JSON(http.StatusOK, metric{})
 	})
 
 	NewUserController(dbStorage, &logger.ZeroLogAdapter{Logger: zLogger}).AddHandlers(r)

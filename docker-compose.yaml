@@ -1,5 +1,18 @@
 version: '3.5'
 services:
+  gophermart:
+    build:
+      context: .
+      dockerfile: docker-files/dev/gophermart/Dockerfile
+      target: dev
+    environment:
+      DATABASE_DSN: "postgres://postgres:postgres@postgres:5432/postgres"
+    volumes:
+      - ./:/app
+    depends_on:
+      - postgres
+    ports:
+      - "8080:8080"
   postgres:
     image: postgres:15-alpine3.17
     ports:

@@ -16,8 +16,7 @@ import (
 
 func TestPingRoute(t *testing.T) {
 	//todo replace with database from env var
-	db, err := sql.Open("pgx", "postgres://postgres:postgres@localhost:54323/postgres")
-	require.Nil(t, err)
+	db := utils.GetDB(t)
 	defer db.Close()
 
 	dbStorage, err := storage.NewDBStorage(db)
@@ -29,8 +28,8 @@ func TestPingRoute(t *testing.T) {
 	req, _ := http.NewRequest("GET", "/ping", nil)
 	r.ServeHTTP(w, req)
 
+	require.Equal(t, `{"DBError":""}`, w.Body.String())
 	require.Equal(t, 200, w.Code)
-	require.Equal(t, `{}`, w.Body.String())
 }
 
 func TestRegisterRoute(t *testing.T) {

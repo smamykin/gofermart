@@ -14,8 +14,12 @@ var logger = zerolog.New(os.Stdout)
 
 func main() {
 	var err error
-	//todo get the dsn from env var
-	db, err := sql.Open("pgx", "postgres://postgres:postgres@localhost:54323/postgres")
+	dsn, ok := os.LookupEnv("DATABASE_DSN")
+	if !ok {
+		logger.Error().Msgf("env variable DATABASE_DSN is not defined")
+		return
+	}
+	db, err := sql.Open("pgx", dsn)
 	if err != nil {
 		logger.Error().Msgf("cannot open db connection. error: %s\n", err.Error())
 		return
