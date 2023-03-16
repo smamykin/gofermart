@@ -16,6 +16,10 @@ type HealthcheckController struct {
 	DBStorage *storage.DBStorage
 }
 
+func (h *HealthcheckController) SetupRoutes(public *gin.RouterGroup, protected *gin.RouterGroup) {
+	public.GET("/ping", h.PingHandler)
+}
+
 func (h *HealthcheckController) PingHandler(c *gin.Context) {
 	type metric struct {
 		DBError string

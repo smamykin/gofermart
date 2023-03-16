@@ -17,27 +17,36 @@ import (
 func SetupRouter(db *sql.DB, zLogger *zerolog.Logger) *gin.Engine {
 	r := gin.Default()
 
+	controllers := setupDependencies(db, zLogger)
+
 	public := r.Group("/")
 	protected := r.Group("/")
 	protected.Use(JwtAuthMiddleware)
 
-	dbStorage := storage.NewDBStorage(db)
-
-	h := controller.NewHealthcheckController(dbStorage)
-	u := controller.NewUserController(
-		&logger.ZeroLogAdapter{Logger: zLogger},
-		service.UserService{
-			Storage:       dbStorage,
-			HashGenerator: &pwdhash.HashGenerator{},
-		},
-	)
-
-	public.GET("/ping", h.PingHandler)
-	public.POST("/api/user/register", u.RegisterHandler)
-	public.POST("/api/user/login", u.LoginHandler)
-	protected.POST("/api/user/orders", u.OrderHandler)
+	for _, c := range controllers {
+		c.SetupRoutes(public, protected)
+	}
 
 	return r
+}
+
+type ControllerInterface interface {
+	SetupRoutes(public *gin.RouterGroup, protected *gin.RouterGroup)
+}
+
+func setupDependencies(db *sql.DB, zLogger *zerolog.Logger) []ControllerInterface {
+	dbStorage := storage.NewDBStorage(db)
+
+	return []ControllerInterface{
+		controller.NewHealthcheckController(dbStorage),
+		controller.NewUserController(
+			&logger.ZeroLogAdapter{Logger: zLogger},
+			service.UserService{
+				Storage:       dbStorage,
+				HashGenerator: &pwdhash.HashGenerator{},
+			},
+		),
+	}
 }
 
 func JwtAuthMiddleware(c *gin.Context) {

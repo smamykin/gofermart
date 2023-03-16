@@ -24,6 +24,12 @@ type UserController struct {
 	userService service.UserService
 }
 
+func (u *UserController) SetupRoutes(public *gin.RouterGroup, protected *gin.RouterGroup) {
+	public.POST("/api/user/register", u.RegisterHandler)
+	public.POST("/api/user/login", u.LoginHandler)
+	protected.POST("/api/user/orders", u.OrderHandler)
+}
+
 func (u *UserController) RegisterHandler(c *gin.Context) {
 	var credentials service.Credentials
 	err := c.ShouldBindJSON(&credentials)
