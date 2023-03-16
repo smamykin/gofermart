@@ -6,7 +6,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/rs/zerolog"
-	"github.com/smamykin/gofermart/internal/routing"
+	"github.com/smamykin/gofermart/internal/container"
 	"github.com/smamykin/gofermart/pkg/pwdhash"
 	"github.com/smamykin/gofermart/pkg/token"
 	"github.com/smamykin/gofermart/tests/Functional/utils"
@@ -23,7 +23,7 @@ func TestPing(t *testing.T) {
 	defer db.Close()
 
 	logger := zerolog.Nop()
-	r := routing.SetupRouter(db, &logger)
+	r := container.NewContainer(db, &logger).Router()
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping", nil)
@@ -39,7 +39,7 @@ func TestRegister(t *testing.T) {
 	utils.TruncateTable(t, db)
 
 	logger := zerolog.Nop()
-	r := routing.SetupRouter(db, &logger)
+	r := container.NewContainer(db, &logger).Router()
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("POST", "/api/user/register", strings.NewReader(`{"login":"cheesecake", "password": "pancake"}`))
@@ -59,7 +59,7 @@ func TestLogin(t *testing.T) {
 	addUserToDB(t, pwd, login, db)
 
 	logger := zerolog.Nop()
-	r := routing.SetupRouter(db, &logger)
+	r := container.NewContainer(db, &logger).Router()
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("POST", "/api/user/login", strings.NewReader(`{"login":"cheesecake", "password": "pancake"}`))
 	r.ServeHTTP(w, req)

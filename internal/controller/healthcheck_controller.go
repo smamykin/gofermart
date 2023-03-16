@@ -17,10 +17,10 @@ type HealthcheckController struct {
 }
 
 func (h *HealthcheckController) SetupRoutes(public *gin.RouterGroup, protected *gin.RouterGroup) {
-	public.GET("/ping", h.PingHandler)
+	public.GET("/ping", h.HealthcheckHandler)
 }
 
-func (h *HealthcheckController) PingHandler(c *gin.Context) {
+func (h *HealthcheckController) HealthcheckHandler(c *gin.Context) {
 	type metric struct {
 		DBError string
 	}
