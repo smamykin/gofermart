@@ -27,6 +27,10 @@ func NewContainer(zLogger *zerolog.Logger) (c *Container, err error) {
 	if err != nil {
 		return c, fmt.Errorf("cannot open db connection. error: %w", err)
 	}
+	err = ensureSchemaExists(db)
+	if err != nil {
+		return c, fmt.Errorf("cannot create db schema. error: %w", err)
+	}
 
 	c = &Container{}
 	c.config = cfg
@@ -92,6 +96,34 @@ func (c *Container) Close() error {
 		return err
 	}
 	c.isOpen = false
+
+	return nil
+}
+
+func ensureSchemaExists(db *sql.DB) error {
+	tableExistsSQL := "SELECT EXISTS ( SELECT FROM pg_tables WHERE tablename  = 'user');"
+	var isTableExists bool
+	err := db.QueryRow(tableExistsSQL).Scan(&isTableExists)
+	if err != nil {
+		return err
+	}
+	if isTableExists {
+		return nil
+	}
+
+	_, err = db.Exec(`
+		CREATE TABLE "user" (
+			"id" SERIAL PRIMARY KEY,
+			"login" VARCHAR NOT NULL ,
+			"pwd" VARCHAR NOT NULL
+		);
+
+		CREATE UNIQUE INDEX name_type_unique ON "user" (login);
+	`)
+
+	if err != nil {
+		return err
+	}
 
 	return nil
 }

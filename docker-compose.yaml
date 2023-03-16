@@ -6,7 +6,7 @@ services:
       dockerfile: docker-files/dev/gophermart/Dockerfile
       target: dev
     environment:
-      DATABASE_DSN: "postgres://postgres:postgres@postgres:5432/postgres"
+      DATABASE_URI: "postgres://postgres:postgres@postgres:5432/postgres"
     volumes:
       - ./:/app
     depends_on:
