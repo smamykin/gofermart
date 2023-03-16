@@ -58,11 +58,7 @@ func (d *DBStorage) UpsertUser(login, pwd string) (user entity.User, err error) 
 		return user, nil
 	}
 
-	if err != nil {
-		return user, err
-	}
-
-	return user, nil
+	return user, err
 }
 
 func (d *DBStorage) Healthcheck(ctx context.Context) error {
