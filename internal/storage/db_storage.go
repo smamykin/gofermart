@@ -36,7 +36,7 @@ func (d *DBStorage) GetUserByLogin(login string) (u entity.User, err error) {
 	}
 
 	if err == sql.ErrNoRows {
-		return u, service.ErrUserNotFound
+		return u, service.ErrUserIsNotFound
 	}
 
 	return u, err

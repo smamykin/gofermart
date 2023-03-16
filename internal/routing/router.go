@@ -2,8 +2,10 @@ package routing
 
 import (
 	"github.com/rs/zerolog"
+	"github.com/smamykin/gofermart/internal/service"
 	"github.com/smamykin/gofermart/internal/storage"
 	"github.com/smamykin/gofermart/pkg/logger"
+	"github.com/smamykin/gofermart/pkg/pwdhash"
 	"github.com/smamykin/gofermart/pkg/token"
 	"net/http"
 
@@ -35,7 +37,16 @@ func SetupRouter(dbStorage *storage.DBStorage, zLogger *zerolog.Logger) *gin.Eng
 		c.JSON(http.StatusOK, metric{})
 	})
 
-	NewUserController(dbStorage, &logger.ZeroLogAdapter{Logger: zLogger}).AddHandlers(public, protected)
+	u := NewUserController(
+		&logger.ZeroLogAdapter{Logger: zLogger},
+		service.UserService{
+			Storage:       dbStorage,
+			HashGenerator: &pwdhash.HashGenerator{},
+		},
+	)
+	public.POST("/api/user/register", u.RegisterHandler)
+	public.POST("/api/user/login", u.LoginHandler)
+	protected.POST("/api/user/orders", u.OrderHandler)
 
 	return r
 }

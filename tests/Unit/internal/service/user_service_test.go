@@ -26,12 +26,12 @@ func TestUserService_CreateNewUser(t *testing.T) {
 		"if password is empty": {
 			service.Credentials{Login: "cheesecake", Pwd: ""},
 			[]error{},
-			service.NewBadCredentialsError("password"),
+			service.ErrPwdIsNotValid,
 		},
 		"if login is empty": {
 			service.Credentials{Login: "", Pwd: "pancake"},
 			[]error{},
-			service.NewBadCredentialsError("login"),
+			service.ErrLoginIsNotValid,
 		},
 		"if storage returns error": {
 			service.Credentials{Login: "cheesecake", Pwd: "pancake"},
@@ -41,7 +41,7 @@ func TestUserService_CreateNewUser(t *testing.T) {
 		"if user exists already": {
 			service.Credentials{Login: "already_exists", Pwd: "pancake"},
 			[]error{},
-			service.NewBadCredentialsError("login"),
+			service.ErrLoginIsNotValid,
 		},
 	}
 
@@ -77,8 +77,8 @@ func TestUserService_GetUserIfPwdValid(t *testing.T) {
 	}
 	tests := map[string]testCase{
 		"general case":  {credentials, expectedUser, nil, nil, true},
-		"no user":       {credentials, entity.User{}, service.ErrUserNotFound, service.ErrUserNotFound, true},
-		"pwd not valid": {credentials, expectedUser, nil, service.ErrPwdNotValid, false},
+		"no user":       {credentials, entity.User{}, service.ErrUserIsNotFound, service.ErrUserIsNotFound, true},
+		"pwd not valid": {credentials, expectedUser, nil, service.ErrPwdIsNotValid, false},
 	}
 
 	for name, tt := range tests {
@@ -136,7 +136,7 @@ func createStorageInterfaceMockForUpsertUser(ctrl *gomock.Controller, credential
 			}, nil
 		}
 
-		return u, service.ErrUserNotFound
+		return u, service.ErrUserIsNotFound
 
 	}).AnyTimes()
 
