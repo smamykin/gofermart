@@ -61,6 +61,32 @@ func TestLogin(t *testing.T) {
 	assertAuthorizationHeader(t, w, c)
 }
 
+func TestOrderPost(t *testing.T) {
+	c := utils.GetContainer(t)
+	utils.TruncateTable(t, c.DB())
+
+	pwd := "pancake"
+	login := "cheesecake"
+	addUserToDB(t, pwd, login, c.DB())
+
+	r := c.Router()
+	w := httptest.NewRecorder()
+	orderNumber := "12345678903"
+	req, _ := http.NewRequest("POST", "/api/user/orders", strings.NewReader(orderNumber))
+	authorize(t, 1, c, req)
+
+	r.ServeHTTP(w, req)
+
+	require.Equal(t, 200, w.Code, w.Body.String())
+	require.Equal(t, `{"message":"success - `+orderNumber+`"}`, w.Body.String())
+}
+
+func authorize(t *testing.T, userID int, c *container.Container, req *http.Request) {
+	tkn, err := token.Generate(userID, []byte(c.Config().APISecret), c.Config().TokenLifespan)
+	require.NoError(t, err)
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", tkn))
+}
+
 func assertAuthorizationHeader(t *testing.T, w *httptest.ResponseRecorder, c *container.Container) {
 	bearerToken := w.Header().Get("Authorization")
 	require.NotSame(t, "", bearerToken)

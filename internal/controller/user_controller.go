@@ -6,6 +6,7 @@ import (
 	"github.com/smamykin/gofermart/internal/service"
 	"github.com/smamykin/gofermart/pkg/contracts"
 	"github.com/smamykin/gofermart/pkg/token"
+	"io"
 	"net/http"
 	"time"
 )
@@ -92,6 +93,22 @@ func (u *UserController) loginHandler(c *gin.Context) {
 }
 
 func (u *UserController) orderHandler(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"message": "success"})
+	//currentUserID, _ := c.Get("current_user_id")
+	//c.orderService.add
+	var body []byte
+	getBody, err := c.Request.GetBody()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "cannot get body"})
+		return
+	}
+	body, err = io.ReadAll(getBody)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "cannot read body"})
+		return
+	}
+	defer getBody.Close()
 
+	// todo using order service create order and save it
+	// todo create gorutine that will ask accrual about statuses
+	c.JSON(http.StatusOK, gin.H{"message": "success - " + string(body)})
 }
