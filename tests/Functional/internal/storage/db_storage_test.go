@@ -17,10 +17,9 @@ func TestDBStorage_UpsertUser(t *testing.T) {
 	defer db.Close()
 	utils.TruncateTable(t, db)
 
-	store, err := storage.NewDBStorage(db)
-	require.Nil(t, err)
+	store := storage.NewDBStorage(db)
 
-	err = store.UpsertUser("cheesecake", "pwd")
+	err := store.UpsertUser("cheesecake", "pwd")
 	require.Nil(t, err)
 	assertUsersInDB(t, db, []entity.User{
 		{1, "cheesecake", "pwd"},
@@ -49,8 +48,7 @@ func TestDBStorage_GetUserByLogin(t *testing.T) {
 	}
 	insertUser(t, db, expected)
 
-	store, err := storage.NewDBStorage(db)
-	require.Nil(t, err)
+	store := storage.NewDBStorage(db)
 	actual, err := store.GetUserByLogin("foo")
 	require.Nil(t, err)
 	assert.Equal(t, expected, actual)

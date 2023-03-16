@@ -7,7 +7,6 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/rs/zerolog"
 	"github.com/smamykin/gofermart/internal/routing"
-	"github.com/smamykin/gofermart/internal/storage"
 	"github.com/smamykin/gofermart/pkg/pwdhash"
 	"github.com/smamykin/gofermart/pkg/token"
 	"github.com/smamykin/gofermart/tests/Functional/utils"
@@ -20,14 +19,11 @@ import (
 )
 
 func TestPing(t *testing.T) {
-	//todo replace with database from env var
 	db := utils.GetDB(t)
 	defer db.Close()
 
-	dbStorage, err := storage.NewDBStorage(db)
-	require.Nil(t, err)
 	logger := zerolog.Nop()
-	r := routing.SetupRouter(dbStorage, &logger)
+	r := routing.SetupRouter(db, &logger)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping", nil)
@@ -42,10 +38,8 @@ func TestRegister(t *testing.T) {
 	defer db.Close()
 	utils.TruncateTable(t, db)
 
-	dbStorage, err := storage.NewDBStorage(db)
-	require.Nil(t, err)
 	logger := zerolog.Nop()
-	r := routing.SetupRouter(dbStorage, &logger)
+	r := routing.SetupRouter(db, &logger)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("POST", "/api/user/register", strings.NewReader(`{"login":"cheesecake", "password": "pancake"}`))
@@ -60,15 +54,12 @@ func TestLogin(t *testing.T) {
 	defer db.Close()
 	utils.TruncateTable(t, db)
 
-	dbStorage, err := storage.NewDBStorage(db)
-	require.Nil(t, err)
-
 	pwd := "pancake"
 	login := "cheesecake"
-	addUserToDB(t, pwd, login, dbStorage)
+	addUserToDB(t, pwd, login, db)
 
 	logger := zerolog.Nop()
-	r := routing.SetupRouter(dbStorage, &logger)
+	r := routing.SetupRouter(db, &logger)
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("POST", "/api/user/login", strings.NewReader(`{"login":"cheesecake", "password": "pancake"}`))
 	r.ServeHTTP(w, req)
@@ -91,11 +82,11 @@ func TestLogin(t *testing.T) {
 
 }
 
-func addUserToDB(t *testing.T, pwd string, login string, dbStorage *storage.DBStorage) {
+func addUserToDB(t *testing.T, pwd string, login string, db *sql.DB) {
 	hg := pwdhash.HashGenerator{}
 	pwdHash, err := hg.Generate(pwd)
 	require.Nil(t, err)
-	err = dbStorage.UpsertUser(login, pwdHash)
+	_, err = db.Exec(`INSERT INTO "user" (login, pwd) VALUES ($1, $2)`, login, pwdHash)
 	require.Nil(t, err)
 }
 

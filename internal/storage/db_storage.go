@@ -8,10 +8,8 @@ import (
 	"time"
 )
 
-func NewDBStorage(db *sql.DB) (*DBStorage, error) {
-
-	result := &DBStorage{db: db}
-	return result, nil
+func NewDBStorage(db *sql.DB) *DBStorage {
+	return &DBStorage{db: db}
 }
 
 type DBStorage struct {
