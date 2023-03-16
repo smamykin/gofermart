@@ -5,7 +5,6 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/smamykin/gofermart/internal/entity"
 	"github.com/smamykin/gofermart/internal/service"
-	"github.com/smamykin/gofermart/internal/storage"
 	"github.com/smamykin/gofermart/tests/Functional/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -13,14 +12,12 @@ import (
 )
 
 func TestDBStorage_UpsertUser(t *testing.T) {
-	db := utils.GetDB(t)
-	defer db.Close()
+	c := utils.GetContainer(t)
+	db := c.DB()
 	utils.TruncateTable(t, db)
+	store := c.Storage()
 
-	store, err := storage.NewDBStorage(db)
-	require.Nil(t, err)
-
-	err = store.UpsertUser("cheesecake", "pwd")
+	err := store.UpsertUser("cheesecake", "pwd")
 	require.Nil(t, err)
 	assertUsersInDB(t, db, []entity.User{
 		{1, "cheesecake", "pwd"},
@@ -38,8 +35,8 @@ func TestDBStorage_UpsertUser(t *testing.T) {
 }
 
 func TestDBStorage_GetUserByLogin(t *testing.T) {
-	db := utils.GetDB(t)
-	defer db.Close()
+	c := utils.GetContainer(t)
+	db := c.DB()
 	utils.TruncateTable(t, db)
 
 	expected := entity.User{
@@ -49,13 +46,14 @@ func TestDBStorage_GetUserByLogin(t *testing.T) {
 	}
 	insertUser(t, db, expected)
 
-	store, err := storage.NewDBStorage(db)
-	require.Nil(t, err)
+	store := c.Storage()
+
 	actual, err := store.GetUserByLogin("foo")
 	require.Nil(t, err)
 	assert.Equal(t, expected, actual)
+
 	_, err = store.GetUserByLogin("baz")
-	assert.Equal(t, service.ErrNoRows, err)
+	assert.Equal(t, service.ErrUserIsNotFound, err)
 
 }
 

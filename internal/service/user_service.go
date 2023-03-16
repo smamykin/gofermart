@@ -2,9 +2,12 @@ package service
 
 import (
 	"errors"
-	"fmt"
 	"github.com/smamykin/gofermart/internal/entity"
 )
+
+// region contracts
+
+// region interfaces
 
 type StorageInterface interface {
 	UpsertUser(login string, pwd string) error
@@ -13,48 +16,51 @@ type StorageInterface interface {
 
 type HashGeneratorInterface interface {
 	Generate(stringToHash string) (string, error)
+	IsEqual(hashedPassword string, plainTxtPwd string) (isValid bool, err error)
 }
 
-func NewBadCredentialsError(fieldName string) error {
-	return BadCredentialsError{fmt.Sprintf("%s is incorrect", fieldName)}
-}
+// endregion interfaces
 
-type BadCredentialsError struct {
-	msg string
-}
+// region errors
 
-func (b BadCredentialsError) Error() string {
-	return b.msg
-}
+var ErrUserIsNotFound = errors.New("user is not found")
+var ErrLoginIsNotValid = errors.New("login is incorrect")
+var ErrPwdIsNotValid = errors.New("password is incorrect")
 
-var ErrNoRows = errors.New("error no rows")
+//endregion errors
 
-type UserService struct {
-	Storage       StorageInterface
-	HashGenerator HashGeneratorInterface
-}
+//region DTO
 
 type Credentials struct {
 	Login string `json:"login"`
 	Pwd   string `json:"password"`
 }
 
+//endregion DTO
+
+//endregion contracts
+
+type UserService struct {
+	Storage       StorageInterface
+	HashGenerator HashGeneratorInterface
+}
+
 func (u *UserService) CreateNewUser(credentials Credentials) error {
 	if "" == credentials.Pwd {
-		return NewBadCredentialsError("password")
+		return ErrPwdIsNotValid
 	}
 
 	if "" == credentials.Login {
-		return NewBadCredentialsError("login")
+		return ErrLoginIsNotValid
 	}
 
 	_, err := u.Storage.GetUserByLogin(credentials.Login)
 	if err == nil {
 		// the user exists already
-		return NewBadCredentialsError("login")
+		return ErrLoginIsNotValid
 	}
 
-	if err != ErrNoRows {
+	if err != ErrUserIsNotFound {
 		return err
 	}
 
@@ -64,4 +70,23 @@ func (u *UserService) CreateNewUser(credentials Credentials) error {
 	}
 
 	return u.Storage.UpsertUser(credentials.Login, pwdHash)
+}
+
+func (u *UserService) GetUserIfPwdValid(credentials Credentials) (user entity.User, err error) {
+
+	user, err = u.Storage.GetUserByLogin(credentials.Login)
+	if err != nil {
+		return user, err
+	}
+
+	isValid, err := u.HashGenerator.IsEqual(user.Pwd, credentials.Pwd)
+	if err != nil {
+		return user, err
+	}
+
+	if !isValid {
+		return user, ErrPwdIsNotValid
+	}
+
+	return user, nil
 }

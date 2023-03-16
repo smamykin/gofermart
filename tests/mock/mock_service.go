@@ -100,3 +100,18 @@ func (mr *MockHashGeneratorInterfaceMockRecorder) Generate(stringToHash interfac
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Generate", reflect.TypeOf((*MockHashGeneratorInterface)(nil).Generate), stringToHash)
 }
+
+// IsEqual mocks base method.
+func (m *MockHashGeneratorInterface) IsEqual(hashedPassword, plainTxtPwd string) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsEqual", hashedPassword, plainTxtPwd)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// IsEqual indicates an expected call of IsEqual.
+func (mr *MockHashGeneratorInterfaceMockRecorder) IsEqual(hashedPassword, plainTxtPwd interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsEqual", reflect.TypeOf((*MockHashGeneratorInterface)(nil).IsEqual), hashedPassword, plainTxtPwd)
+}

@@ -8,10 +8,8 @@ import (
 	"time"
 )
 
-func NewDBStorage(db *sql.DB) (*DBStorage, error) {
-
-	result := &DBStorage{db: db}
-	return result, nil
+func NewDBStorage(db *sql.DB) *DBStorage {
+	return &DBStorage{db: db}
 }
 
 type DBStorage struct {
@@ -36,7 +34,7 @@ func (d *DBStorage) GetUserByLogin(login string) (u entity.User, err error) {
 	}
 
 	if err == sql.ErrNoRows {
-		return u, service.ErrNoRows
+		return u, service.ErrUserIsNotFound
 	}
 
 	return u, err
