@@ -7,21 +7,28 @@ import (
 	"github.com/smamykin/gofermart/pkg/contracts"
 	"github.com/smamykin/gofermart/pkg/token"
 	"net/http"
+	"time"
 )
 
 func NewUserController(
 	logger contracts.LoggerInterface,
 	userService service.UserService,
+	apiSecret []byte,
+	tokenLifespan time.Duration,
 ) *UserController {
 	return &UserController{
-		logger:      logger,
-		userService: userService,
+		logger:        logger,
+		userService:   userService,
+		apiSecret:     apiSecret,
+		tokenLifespan: tokenLifespan,
 	}
 }
 
 type UserController struct {
-	logger      contracts.LoggerInterface
-	userService service.UserService
+	logger        contracts.LoggerInterface
+	userService   service.UserService
+	apiSecret     []byte
+	tokenLifespan time.Duration
 }
 
 func (u *UserController) SetupRoutes(public *gin.RouterGroup, protected *gin.RouterGroup) {
@@ -66,7 +73,7 @@ func (u *UserController) loginHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	tkn, err := token.Generate(user.ID)
+	tkn, err := token.Generate(user.ID, u.apiSecret, u.tokenLifespan)
 	if err != nil {
 		u.logger.Err(err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

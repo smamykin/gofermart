@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	_ "github.com/jackc/pgx/v5/stdlib"
-	"github.com/rs/zerolog"
-	"github.com/smamykin/gofermart/internal/container"
 	"github.com/smamykin/gofermart/pkg/pwdhash"
 	"github.com/smamykin/gofermart/pkg/token"
 	"github.com/smamykin/gofermart/tests/Functional/utils"
@@ -19,47 +17,37 @@ import (
 )
 
 func TestPing(t *testing.T) {
-	db := utils.GetDB(t)
-	defer db.Close()
-
-	logger := zerolog.Nop()
-	r := container.NewContainer(db, &logger).Router()
+	c := utils.GetContainer(t)
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("GET", "/ping", nil)
-	r.ServeHTTP(w, req)
+	c.Router().ServeHTTP(w, req)
 
 	require.Equal(t, `{"DBError":""}`, w.Body.String())
 	require.Equal(t, 200, w.Code)
 }
 
 func TestRegister(t *testing.T) {
-	db := utils.GetDB(t)
-	defer db.Close()
-	utils.TruncateTable(t, db)
-
-	logger := zerolog.Nop()
-	r := container.NewContainer(db, &logger).Router()
+	c := utils.GetContainer(t)
+	utils.TruncateTable(t, c.DB())
 
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("POST", "/api/user/register", strings.NewReader(`{"login":"cheesecake", "password": "pancake"}`))
-	r.ServeHTTP(w, req)
+	c.Router().ServeHTTP(w, req)
 
 	require.Equal(t, 200, w.Code)
-	assertUser(t, db, "cheesecake")
+	assertUser(t, c.DB(), "cheesecake")
 }
 
 func TestLogin(t *testing.T) {
-	db := utils.GetDB(t)
-	defer db.Close()
-	utils.TruncateTable(t, db)
+	c := utils.GetContainer(t)
+	utils.TruncateTable(t, c.DB())
 
 	pwd := "pancake"
 	login := "cheesecake"
-	addUserToDB(t, pwd, login, db)
+	addUserToDB(t, pwd, login, c.DB())
 
-	logger := zerolog.Nop()
-	r := container.NewContainer(db, &logger).Router()
+	r := c.Router()
 	w := httptest.NewRecorder()
 	req, _ := http.NewRequest("POST", "/api/user/login", strings.NewReader(`{"login":"cheesecake", "password": "pancake"}`))
 	r.ServeHTTP(w, req)
@@ -72,7 +60,7 @@ func TestLogin(t *testing.T) {
 	require.Equal(t, 2, len(strings.Split(bearerToken, " ")))
 
 	tokenString := strings.Split(bearerToken, " ")[1]
-	tkn, err := token.ParseString(tokenString)
+	tkn, err := token.ParseString(tokenString, []byte(c.Config().ApiSecret))
 	require.Nil(t, err)
 	require.Equal(t, true, tkn.Valid)
 
