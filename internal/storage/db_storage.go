@@ -45,16 +45,24 @@ var upsertUserSQL = `
 	VALUES ($1, $2)
 	ON CONFLICT (login) DO UPDATE 
 		SET pwd = EXCLUDED.pwd
+	RETURNING id, login, pwd
 `
 
-func (d *DBStorage) UpsertUser(login string, pwd string) error {
-	_, err := d.db.Exec(upsertUserSQL, login, pwd)
-
-	if err != nil {
-		return err
+func (d *DBStorage) UpsertUser(login, pwd string) (user entity.User, err error) {
+	row := d.db.QueryRow(upsertUserSQL, login, pwd)
+	if row.Err() != nil {
+		return user, row.Err()
+	}
+	err = row.Scan(&user.ID, &user.Login, &user.Pwd)
+	if err == nil {
+		return user, nil
 	}
 
-	return nil
+	if err != nil {
+		return user, err
+	}
+
+	return user, nil
 }
 
 func (d *DBStorage) Healthcheck(ctx context.Context) error {

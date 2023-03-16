@@ -10,7 +10,7 @@ import (
 // region interfaces
 
 type StorageInterface interface {
-	UpsertUser(login string, pwd string) error
+	UpsertUser(login, pwd string) (user entity.User, err error)
 	GetUserByLogin(login string) (entity.User, error)
 }
 
@@ -45,28 +45,28 @@ type UserService struct {
 	HashGenerator HashGeneratorInterface
 }
 
-func (u *UserService) CreateNewUser(credentials Credentials) error {
+func (u *UserService) CreateNewUser(credentials Credentials) (user entity.User, err error) {
 	if credentials.Pwd == "" {
-		return ErrPwdIsNotValid
+		return user, ErrPwdIsNotValid
 	}
 
 	if credentials.Login == "" {
-		return ErrLoginIsNotValid
+		return user, ErrLoginIsNotValid
 	}
 
-	_, err := u.Storage.GetUserByLogin(credentials.Login)
+	_, err = u.Storage.GetUserByLogin(credentials.Login)
 	if err == nil {
 		// the user exists already
-		return ErrLoginIsNotValid
+		return user, ErrLoginIsNotValid
 	}
 
 	if err != ErrUserIsNotFound {
-		return err
+		return user, err
 	}
 
 	pwdHash, err := u.HashGenerator.Generate(credentials.Pwd)
 	if err != nil {
-		return err
+		return user, err
 	}
 
 	return u.Storage.UpsertUser(credentials.Login, pwdHash)

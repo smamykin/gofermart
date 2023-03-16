@@ -17,4 +17,6 @@ docker-build:
 	docker build -f docker-files/dev/gophermart/Dockerfile -t gophermart-img --target prod .
 docker-run:
 	docker run -it --rm gophermart-img
+mockgen: # generate mocks for project
+	mockgen -source ./internal/service/user_service.go -destination ./tests/mock/mock_service.go
 

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/smamykin/gofermart/internal/container"
 	"github.com/smamykin/gofermart/pkg/pwdhash"
 	"github.com/smamykin/gofermart/pkg/token"
 	"github.com/smamykin/gofermart/tests/Functional/utils"
@@ -37,6 +38,9 @@ func TestRegister(t *testing.T) {
 
 	require.Equal(t, 200, w.Code)
 	assertUser(t, c.DB(), "cheesecake")
+	require.Equal(t, `{"message":"success"}`, w.Body.String())
+	assertAuthorizationHeader(t, w, c)
+
 }
 
 func TestLogin(t *testing.T) {
@@ -54,7 +58,10 @@ func TestLogin(t *testing.T) {
 
 	require.Equal(t, 200, w.Code, w.Body.String())
 	require.Equal(t, `{"message":"success"}`, w.Body.String())
+	assertAuthorizationHeader(t, w, c)
+}
 
+func assertAuthorizationHeader(t *testing.T, w *httptest.ResponseRecorder, c *container.Container) {
 	bearerToken := w.Header().Get("Authorization")
 	require.NotSame(t, "", bearerToken)
 	require.Equal(t, 2, len(strings.Split(bearerToken, " ")))
@@ -68,7 +75,6 @@ func TestLogin(t *testing.T) {
 	id, err := strconv.ParseInt(fmt.Sprintf("%.0f", claims["user_id"]), 10, 32)
 	require.NoError(t, err)
 	require.Equal(t, 1, int(id))
-
 }
 
 func addUserToDB(t *testing.T, pwd string, login string, db *sql.DB) {

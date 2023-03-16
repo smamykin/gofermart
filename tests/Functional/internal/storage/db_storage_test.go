@@ -17,23 +17,25 @@ func TestDBStorage_UpsertUser(t *testing.T) {
 	utils.TruncateTable(t, db)
 	store := c.Storage()
 
-	err := store.UpsertUser("cheesecake", "pwd")
+	user, err := store.UpsertUser("cheesecake", "pwd")
 	require.NoError(t, err)
-	assertUsersInDB(t, db, []entity.User{
-		{ID: 1, Login: "cheesecake", Pwd: "pwd"},
-	})
+	expectedUser := entity.User{ID: 1, Login: "cheesecake", Pwd: "pwd"}
+	assertUsersInDB(t, db, []entity.User{expectedUser})
+	require.Equal(t, expectedUser, user)
 
-	err = store.UpsertUser("cheesecake", "pwd2")
+	user, err = store.UpsertUser("cheesecake", "pwd2")
 	require.NoError(t, err)
-	assertUsersInDB(t, db, []entity.User{
-		{ID: 1, Login: "cheesecake", Pwd: "pwd2"},
-	})
-	err = store.UpsertUser("cheesecake2", "pwd")
+	expectedUser = entity.User{ID: 1, Login: "cheesecake", Pwd: "pwd2"}
+	assertUsersInDB(t, db, []entity.User{expectedUser})
+	require.Equal(t, expectedUser, user)
+	user, err = store.UpsertUser("cheesecake2", "pwd")
 	require.NoError(t, err)
+	expectedUser = entity.User{ID: 3, Login: "cheesecake2", Pwd: "pwd"}
 	assertUsersInDB(t, db, []entity.User{
 		{ID: 1, Login: "cheesecake", Pwd: "pwd2"},
 		{ID: 3, Login: "cheesecake2", Pwd: "pwd"},
 	})
+	require.Equal(t, expectedUser, user)
 }
 
 func TestDBStorage_GetUserByLogin(t *testing.T) {

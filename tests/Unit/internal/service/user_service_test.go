@@ -8,38 +8,45 @@ import (
 	mock "github.com/smamykin/gofermart/tests/mock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"math/rand"
 	"testing"
 )
 
 func TestUserService_CreateNewUser(t *testing.T) {
 	type testCase struct {
 		credentials          service.Credentials
+		expectedUser         entity.User
 		upsertUserWillReturn []error
-		expected             error
+		expectedErr          error
 	}
 	tests := map[string]testCase{
 		"general case": {
 			service.Credentials{Login: "cheesecake", Pwd: "pancake"},
+			entity.User{ID: rand.Int(), Login: "cheesecake", Pwd: "pancake"},
 			[]error{nil},
 			nil,
 		},
 		"if password is empty": {
 			service.Credentials{Login: "cheesecake", Pwd: ""},
+			entity.User{},
 			[]error{},
 			service.ErrPwdIsNotValid,
 		},
 		"if login is empty": {
 			service.Credentials{Login: "", Pwd: "pancake"},
+			entity.User{},
 			[]error{},
 			service.ErrLoginIsNotValid,
 		},
 		"if storage returns error": {
 			service.Credentials{Login: "cheesecake", Pwd: "pancake"},
+			entity.User{},
 			[]error{errors.New("some error")},
 			errors.New("some error"),
 		},
 		"if user exists already": {
 			service.Credentials{Login: "already_exists", Pwd: "pancake"},
+			entity.User{},
 			[]error{},
 			service.ErrLoginIsNotValid,
 		},
@@ -49,11 +56,12 @@ func TestUserService_CreateNewUser(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			us := service.UserService{
-				Storage:       createStorageInterfaceMockForUpsertUser(ctrl, tt.credentials, tt.upsertUserWillReturn),
+				Storage:       createStorageInterfaceMockForUpsertUser(ctrl, tt.expectedUser, tt.credentials, tt.upsertUserWillReturn),
 				HashGenerator: createHashGeneratorInterfaceMock(ctrl, true),
 			}
-			err := us.CreateNewUser(tt.credentials)
-			require.Equal(t, tt.expected, err)
+			actualUser, actualErr := us.CreateNewUser(tt.credentials)
+			require.Equal(t, tt.expectedErr, actualErr)
+			require.Equal(t, tt.expectedUser, actualUser)
 		})
 	}
 }
@@ -117,7 +125,7 @@ func createStorageInterfaceMockForGetUserIfPwdValid(ctrl *gomock.Controller, use
 	return m
 }
 
-func createStorageInterfaceMockForUpsertUser(ctrl *gomock.Controller, credentials service.Credentials, upsertUserWillReturn []error) service.StorageInterface {
+func createStorageInterfaceMockForUpsertUser(ctrl *gomock.Controller, user entity.User, credentials service.Credentials, upsertUserWillReturn []error) service.StorageInterface {
 	m := mock.NewMockStorageInterface(ctrl)
 	pwdHash, _ := hashFuncForTest(credentials.Pwd)
 	call := m.EXPECT().
@@ -125,15 +133,11 @@ func createStorageInterfaceMockForUpsertUser(ctrl *gomock.Controller, credential
 		Times(len(upsertUserWillReturn))
 
 	for _, err := range upsertUserWillReturn {
-		call.Return(err)
+		call.Return(user, err)
 	}
 	m.EXPECT().GetUserByLogin(gomock.Any()).DoAndReturn(func(login string) (u entity.User, err error) {
 		if login == "already_exists" {
-			return entity.User{
-				ID:    22,
-				Login: login,
-				Pwd:   "not matter",
-			}, nil
+			return user, nil
 		}
 
 		return u, service.ErrUserIsNotFound
