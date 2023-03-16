@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	_ "github.com/jackc/pgx/v5/stdlib"
+	"github.com/smamykin/gofermart/internal/container"
 	"github.com/smamykin/gofermart/pkg/pwdhash"
 	"github.com/smamykin/gofermart/pkg/token"
 	"github.com/smamykin/gofermart/tests/Functional/utils"
@@ -37,6 +38,9 @@ func TestRegister(t *testing.T) {
 
 	require.Equal(t, 200, w.Code)
 	assertUser(t, c.DB(), "cheesecake")
+	require.Equal(t, `{"message":"success"}`, w.Body.String())
+	assertAuthorizationHeader(t, w, c)
+
 }
 
 func TestLogin(t *testing.T) {
@@ -54,20 +58,23 @@ func TestLogin(t *testing.T) {
 
 	require.Equal(t, 200, w.Code, w.Body.String())
 	require.Equal(t, `{"message":"success"}`, w.Body.String())
+	assertAuthorizationHeader(t, w, c)
+}
 
+func assertAuthorizationHeader(t *testing.T, w *httptest.ResponseRecorder, c *container.Container) {
 	bearerToken := w.Header().Get("Authorization")
 	require.NotSame(t, "", bearerToken)
 	require.Equal(t, 2, len(strings.Split(bearerToken, " ")))
 
 	tokenString := strings.Split(bearerToken, " ")[1]
-	tkn, err := token.ParseString(tokenString, []byte(c.Config().ApiSecret))
+	tkn, err := token.ParseString(tokenString, []byte(c.Config().APISecret))
 	require.Nil(t, err)
 	require.Equal(t, true, tkn.Valid)
 
 	claims, _ := tkn.Claims.(jwt.MapClaims)
 	id, err := strconv.ParseInt(fmt.Sprintf("%.0f", claims["user_id"]), 10, 32)
+	require.NoError(t, err)
 	require.Equal(t, 1, int(id))
-
 }
 
 func addUserToDB(t *testing.T, pwd string, login string, db *sql.DB) {
@@ -87,8 +94,8 @@ func assertUser(t *testing.T, db *sql.DB, login string) {
 	row := db.QueryRow(getOneSQL, login)
 	require.Nil(t, row.Err())
 
-	var idFromDb int
+	var idFromDB int
 	var loginFromDB, pwdFromDB string
-	err := row.Scan(&idFromDb, &loginFromDB, &pwdFromDB)
+	err := row.Scan(&idFromDB, &loginFromDB, &pwdFromDB)
 	require.Nil(t, err)
 }

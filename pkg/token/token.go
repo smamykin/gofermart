@@ -9,10 +9,10 @@ import (
 	"time"
 )
 
-func Generate(userId int, apiSecret []byte, tokenLifespan time.Duration) (string, error) {
+func Generate(userID int, apiSecret []byte, tokenLifespan time.Duration) (string, error) {
 	claims := jwt.MapClaims{}
 	claims["authorized"] = true
-	claims["user_id"] = userId
+	claims["user_id"] = userID
 	claims["exp"] = time.Now().Add(tokenLifespan).Unix()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 

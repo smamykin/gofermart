@@ -50,11 +50,12 @@ func (mr *MockStorageInterfaceMockRecorder) GetUserByLogin(login interface{}) *g
 }
 
 // UpsertUser mocks base method.
-func (m *MockStorageInterface) UpsertUser(login, pwd string) error {
+func (m *MockStorageInterface) UpsertUser(login, pwd string) (entity.User, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpsertUser", login, pwd)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(entity.User)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // UpsertUser indicates an expected call of UpsertUser.

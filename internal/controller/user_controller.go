@@ -45,8 +45,16 @@ func (u *UserController) registerHandler(c *gin.Context) {
 		return
 	}
 
-	err = u.userService.CreateNewUser(credentials)
+	user, err := u.userService.CreateNewUser(credentials)
 	if err == nil {
+		tkn, err := token.Generate(user.ID, u.apiSecret, u.tokenLifespan)
+		if err != nil {
+			u.logger.Err(err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+
+		c.Header("Authorization", fmt.Sprintf("Bearer %s", tkn))
 		c.JSON(http.StatusOK, gin.H{"message": "success"})
 		return
 	}
@@ -57,7 +65,6 @@ func (u *UserController) registerHandler(c *gin.Context) {
 
 	u.logger.Err(err)
 	c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-	return
 }
 
 func (u *UserController) loginHandler(c *gin.Context) {
