@@ -70,7 +70,7 @@ func (u *UserController) loginHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	tkn, err := token.GenerateToken(user.ID)
+	tkn, err := token.Generate(user.ID)
 	if err != nil {
 		u.logger.Err(err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

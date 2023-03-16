@@ -41,7 +41,7 @@ func SetupRouter(dbStorage *storage.DBStorage, zLogger *zerolog.Logger) *gin.Eng
 }
 
 func JwtAuthMiddleware(c *gin.Context) {
-	err := token.TokenValid(c)
+	err := token.Valid(c)
 	if err != nil {
 		c.String(http.StatusUnauthorized, "Unauthorized")
 		c.Abort()

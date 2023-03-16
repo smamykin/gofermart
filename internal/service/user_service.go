@@ -13,6 +13,7 @@ type StorageInterface interface {
 
 type HashGeneratorInterface interface {
 	Generate(stringToHash string) (string, error)
+	IsEqual(hashedPassword string, plainTxtPwd string) (isValid bool, err error)
 }
 
 func NewBadCredentialsError(fieldName string) error {
@@ -27,7 +28,8 @@ func (b BadCredentialsError) Error() string {
 	return b.msg
 }
 
-var ErrNoRows = errors.New("error no rows")
+var ErrUserNotFound = errors.New("user is not found")
+var ErrPwdNotValid = errors.New("password is incorrect")
 
 type UserService struct {
 	Storage       StorageInterface
@@ -54,7 +56,7 @@ func (u *UserService) CreateNewUser(credentials Credentials) error {
 		return NewBadCredentialsError("login")
 	}
 
-	if err != ErrNoRows {
+	if err != ErrUserNotFound {
 		return err
 	}
 
@@ -68,5 +70,19 @@ func (u *UserService) CreateNewUser(credentials Credentials) error {
 
 func (u *UserService) GetUserIfPwdValid(credentials Credentials) (user entity.User, err error) {
 
-	return user, err
+	user, err = u.Storage.GetUserByLogin(credentials.Login)
+	if err != nil {
+		return user, err
+	}
+
+	isValid, err := u.HashGenerator.IsEqual(user.Pwd, credentials.Pwd)
+	if err != nil {
+		return user, err
+	}
+
+	if !isValid {
+		return user, ErrPwdNotValid
+	}
+
+	return user, nil
 }

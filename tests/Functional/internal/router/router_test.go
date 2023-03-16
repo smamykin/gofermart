@@ -2,6 +2,8 @@ package router
 
 import (
 	"database/sql"
+	"fmt"
+	"github.com/golang-jwt/jwt/v5"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/rs/zerolog"
 	"github.com/smamykin/gofermart/internal/routing"
@@ -12,6 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -78,9 +81,14 @@ func TestLogin(t *testing.T) {
 	require.Equal(t, 2, len(strings.Split(bearerToken, " ")))
 
 	tokenString := strings.Split(bearerToken, " ")[1]
-	tkn, err := token.ParseTokenString(tokenString)
+	tkn, err := token.ParseString(tokenString)
 	require.Nil(t, err)
 	require.Equal(t, true, tkn.Valid)
+
+	claims, _ := tkn.Claims.(jwt.MapClaims)
+	id, err := strconv.ParseInt(fmt.Sprintf("%.0f", claims["user_id"]), 10, 32)
+	require.Equal(t, 1, int(id))
+
 }
 
 func addUserToDB(t *testing.T, pwd string, login string, dbStorage *storage.DBStorage) {

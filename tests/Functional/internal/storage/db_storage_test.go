@@ -55,7 +55,7 @@ func TestDBStorage_GetUserByLogin(t *testing.T) {
 	require.Nil(t, err)
 	assert.Equal(t, expected, actual)
 	_, err = store.GetUserByLogin("baz")
-	assert.Equal(t, service.ErrNoRows, err)
+	assert.Equal(t, service.ErrUserNotFound, err)
 
 }
 
