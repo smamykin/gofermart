@@ -18,19 +18,21 @@ func TestDBStorage_UpsertUser(t *testing.T) {
 	store := c.Storage()
 
 	err := store.UpsertUser("cheesecake", "pwd")
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assertUsersInDB(t, db, []entity.User{
-		{1, "cheesecake", "pwd"},
+		{ID: 1, Login: "cheesecake", Pwd: "pwd"},
 	})
 
 	err = store.UpsertUser("cheesecake", "pwd2")
+	require.NoError(t, err)
 	assertUsersInDB(t, db, []entity.User{
-		{1, "cheesecake", "pwd2"},
+		{ID: 1, Login: "cheesecake", Pwd: "pwd2"},
 	})
 	err = store.UpsertUser("cheesecake2", "pwd")
+	require.NoError(t, err)
 	assertUsersInDB(t, db, []entity.User{
-		{1, "cheesecake", "pwd2"},
-		{3, "cheesecake2", "pwd"},
+		{ID: 1, Login: "cheesecake", Pwd: "pwd2"},
+		{ID: 3, Login: "cheesecake2", Pwd: "pwd"},
 	})
 }
 
@@ -69,6 +71,7 @@ func assertUsersInDB(t *testing.T, db *sql.DB, expected []entity.User) {
 		ORDER BY id
 	`
 	rows, err := db.Query(getUsersSQL)
+	require.NoError(t, rows.Err())
 	require.Nil(t, err)
 
 	var actual []entity.User

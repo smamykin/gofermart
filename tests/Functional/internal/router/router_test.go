@@ -60,12 +60,13 @@ func TestLogin(t *testing.T) {
 	require.Equal(t, 2, len(strings.Split(bearerToken, " ")))
 
 	tokenString := strings.Split(bearerToken, " ")[1]
-	tkn, err := token.ParseString(tokenString, []byte(c.Config().ApiSecret))
+	tkn, err := token.ParseString(tokenString, []byte(c.Config().APISecret))
 	require.Nil(t, err)
 	require.Equal(t, true, tkn.Valid)
 
 	claims, _ := tkn.Claims.(jwt.MapClaims)
 	id, err := strconv.ParseInt(fmt.Sprintf("%.0f", claims["user_id"]), 10, 32)
+	require.NoError(t, err)
 	require.Equal(t, 1, int(id))
 
 }
@@ -87,8 +88,8 @@ func assertUser(t *testing.T, db *sql.DB, login string) {
 	row := db.QueryRow(getOneSQL, login)
 	require.Nil(t, row.Err())
 
-	var idFromDb int
+	var idFromDB int
 	var loginFromDB, pwdFromDB string
-	err := row.Scan(&idFromDb, &loginFromDB, &pwdFromDB)
+	err := row.Scan(&idFromDB, &loginFromDB, &pwdFromDB)
 	require.Nil(t, err)
 }

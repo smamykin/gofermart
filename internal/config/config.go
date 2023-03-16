@@ -16,7 +16,7 @@ func NewConfigFromEnv() (Config, error) {
 
 type Config struct {
 	Dsn           string        `env:"DATABASE_DSN,notEmpty" envDefault:"postgres://postgres:postgres@localhost:54323/postgres"`
-	ApiSecret     string        `env:"API_SECRET,notEmpty" envDefault:"secret"`
+	APISecret     string        `env:"API_SECRET,notEmpty" envDefault:"secret"`
 	TokenLifespan time.Duration `env:"TOKEN_LIFESPAN,notEmpty" envDefault:"1h"`
 	ServerAddr    string        `env:"SERVER_ADDR,notEmpty" envDefault:"localhost:8080"`
 }

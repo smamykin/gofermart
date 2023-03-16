@@ -40,11 +40,11 @@ func NewContainer(zLogger *zerolog.Logger) (c *Container, err error) {
 				Storage:       c.storage,
 				HashGenerator: &pwdhash.HashGenerator{},
 			},
-			[]byte(cfg.ApiSecret),
+			[]byte(cfg.APISecret),
 			cfg.TokenLifespan,
 		),
 	}
-	c.router = createRouter(c.controllers, []byte(c.Config().ApiSecret))
+	c.router = createRouter(c.controllers, []byte(c.Config().APISecret))
 	c.isOpen = true
 
 	return c, nil

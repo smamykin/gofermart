@@ -57,7 +57,6 @@ func (u *UserController) registerHandler(c *gin.Context) {
 
 	u.logger.Err(err)
 	c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-	return
 }
 
 func (u *UserController) loginHandler(c *gin.Context) {

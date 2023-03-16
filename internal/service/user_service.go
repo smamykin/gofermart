@@ -46,11 +46,11 @@ type UserService struct {
 }
 
 func (u *UserService) CreateNewUser(credentials Credentials) error {
-	if "" == credentials.Pwd {
+	if credentials.Pwd == "" {
 		return ErrPwdIsNotValid
 	}
 
-	if "" == credentials.Login {
+	if credentials.Login == "" {
 		return ErrLoginIsNotValid
 	}
 
