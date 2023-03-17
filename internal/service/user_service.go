@@ -5,8 +5,8 @@ import (
 )
 
 type UserService struct {
-	Storage       UserRepositoryInterface
-	HashGenerator HashGeneratorInterface
+	UserRepository UserRepositoryInterface
+	HashGenerator  HashGeneratorInterface
 }
 
 func (u *UserService) CreateNewUser(credentials Credentials) (user entity.User, err error) {
@@ -18,13 +18,13 @@ func (u *UserService) CreateNewUser(credentials Credentials) (user entity.User, 
 		return user, ErrLoginIsNotValid
 	}
 
-	_, err = u.Storage.GetUserByLogin(credentials.Login)
+	_, err = u.UserRepository.GetUserByLogin(credentials.Login)
 	if err == nil {
 		// the user exists already
 		return user, ErrLoginIsNotValid
 	}
 
-	if err != ErrUserIsNotFound {
+	if err != ErrEntityIsNotFound {
 		return user, err
 	}
 
@@ -33,12 +33,12 @@ func (u *UserService) CreateNewUser(credentials Credentials) (user entity.User, 
 		return user, err
 	}
 
-	return u.Storage.UpsertUser(credentials.Login, pwdHash)
+	return u.UserRepository.UpsertUser(credentials.Login, pwdHash)
 }
 
 func (u *UserService) GetUserIfPwdValid(credentials Credentials) (user entity.User, err error) {
 
-	user, err = u.Storage.GetUserByLogin(credentials.Login)
+	user, err = u.UserRepository.GetUserByLogin(credentials.Login)
 	if err != nil {
 		return user, err
 	}

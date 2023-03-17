@@ -1,4 +1,4 @@
-package storage
+package repository
 
 import (
 	"database/sql"
@@ -17,17 +17,21 @@ func TestUserRepository_UpsertUser(t *testing.T) {
 	utils.TruncateTable(t, db)
 	repository := c.UserRepository()
 
+	// insert
 	user, err := repository.UpsertUser("cheesecake", "pwd")
 	require.NoError(t, err)
 	expectedUser := entity.User{ID: 1, Login: "cheesecake", Pwd: "pwd"}
 	assertUsersInDB(t, db, []entity.User{expectedUser})
 	require.Equal(t, expectedUser, user)
 
+	//update the same
 	user, err = repository.UpsertUser("cheesecake", "pwd2")
 	require.NoError(t, err)
 	expectedUser = entity.User{ID: 1, Login: "cheesecake", Pwd: "pwd2"}
 	assertUsersInDB(t, db, []entity.User{expectedUser})
 	require.Equal(t, expectedUser, user)
+
+	//add a new user again
 	user, err = repository.UpsertUser("cheesecake2", "pwd")
 	require.NoError(t, err)
 	expectedUser = entity.User{ID: 3, Login: "cheesecake2", Pwd: "pwd"}
@@ -43,12 +47,10 @@ func TestUserRepository_GetUserByLogin(t *testing.T) {
 	db := c.DB()
 	utils.TruncateTable(t, db)
 
-	expected := entity.User{
-		ID:    1,
+	expected := utils.InsertUser(t, db, entity.User{
 		Login: "foo",
 		Pwd:   "bar",
-	}
-	insertUser(t, db, expected)
+	})
 
 	repository := c.UserRepository()
 
@@ -57,13 +59,8 @@ func TestUserRepository_GetUserByLogin(t *testing.T) {
 	assert.Equal(t, expected, actual)
 
 	_, err = repository.GetUserByLogin("baz")
-	assert.Equal(t, service.ErrUserIsNotFound, err)
+	assert.Equal(t, service.ErrEntityIsNotFound, err)
 
-}
-
-func insertUser(t *testing.T, db *sql.DB, expected entity.User) {
-	_, err := db.Exec(`INSERT INTO "user" (login, pwd) VALUES ($1,$2);`, expected.Login, expected.Pwd)
-	require.Nil(t, err)
 }
 
 func assertUsersInDB(t *testing.T, db *sql.DB, expected []entity.User) {

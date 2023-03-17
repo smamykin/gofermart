@@ -2,18 +2,18 @@ package controller
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/smamykin/gofermart/internal/storage"
+	"github.com/smamykin/gofermart/internal/repository"
 	"net/http"
 )
 
-func NewHealthcheckController(userRepository *storage.UserRepository) *HealthcheckController {
+func NewHealthcheckController(userRepository *repository.UserRepository) *HealthcheckController {
 	return &HealthcheckController{
 		UserRepository: userRepository,
 	}
 }
 
 type HealthcheckController struct {
-	UserRepository *storage.UserRepository
+	UserRepository *repository.UserRepository
 }
 
 func (h *HealthcheckController) SetupRoutes(public *gin.RouterGroup, protected *gin.RouterGroup) {

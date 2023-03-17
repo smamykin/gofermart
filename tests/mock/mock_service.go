@@ -88,25 +88,42 @@ func (m *MockOrderRepositoryInterface) EXPECT() *MockOrderRepositoryInterfaceMoc
 }
 
 // AddOrder mocks base method.
-func (m *MockOrderRepositoryInterface) AddOrder(order entity.Order) error {
+func (m *MockOrderRepositoryInterface) AddOrder(o entity.Order) (entity.Order, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddOrder", order)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret := m.ctrl.Call(m, "AddOrder", o)
+	ret0, _ := ret[0].(entity.Order)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // AddOrder indicates an expected call of AddOrder.
-func (mr *MockOrderRepositoryInterfaceMockRecorder) AddOrder(order interface{}) *gomock.Call {
+func (mr *MockOrderRepositoryInterfaceMockRecorder) AddOrder(o interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddOrder", reflect.TypeOf((*MockOrderRepositoryInterface)(nil).AddOrder), order)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddOrder", reflect.TypeOf((*MockOrderRepositoryInterface)(nil).AddOrder), o)
+}
+
+// GetOrder mocks base method.
+func (m *MockOrderRepositoryInterface) GetOrder(ID int) (entity.Order, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetOrder", ID)
+	ret0, _ := ret[0].(entity.Order)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetOrder indicates an expected call of GetOrder.
+func (mr *MockOrderRepositoryInterfaceMockRecorder) GetOrder(ID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetOrder", reflect.TypeOf((*MockOrderRepositoryInterface)(nil).GetOrder), ID)
 }
 
 // GetOrderByOrderNumber mocks base method.
-func (m *MockOrderRepositoryInterface) GetOrderByOrderNumber(orderNumber int) error {
+func (m *MockOrderRepositoryInterface) GetOrderByOrderNumber(orderNumber string) (entity.Order, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetOrderByOrderNumber", orderNumber)
-	ret0, _ := ret[0].(error)
-	return ret0
+	ret0, _ := ret[0].(entity.Order)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 // GetOrderByOrderNumber indicates an expected call of GetOrderByOrderNumber.

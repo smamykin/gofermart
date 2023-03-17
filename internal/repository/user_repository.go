@@ -1,4 +1,4 @@
-package storage
+package repository
 
 import (
 	"context"
@@ -42,7 +42,7 @@ func (d *UserRepository) GetUserByLogin(login string) (u entity.User, err error)
 	}
 
 	if err == sql.ErrNoRows {
-		return u, service.ErrUserIsNotFound
+		return u, service.ErrEntityIsNotFound
 	}
 
 	return u, err

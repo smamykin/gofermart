@@ -8,7 +8,6 @@ import (
 	"github.com/smamykin/gofermart/pkg/token"
 	"io"
 	"net/http"
-	"strconv"
 	"time"
 )
 
@@ -112,13 +111,22 @@ func (u *UserController) orderHandler(c *gin.Context) {
 	}
 	defer getBody.Close()
 
-	// todo using order service create order and save it
-	//c.orderService.add
-	orderNumber, err := strconv.Atoi(string(body))
-	if err != nil {
+	orderNumber := string(body)
+	if orderNumber == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "cannot fetch an order number from the  body"})
+		return
 	}
-	u.orderService.AddOrder(currentUserID, orderNumber)
-	// todo create gorutine that will ask accrual about statuses
-	c.JSON(http.StatusOK, gin.H{"message": "success - " + string(body) + " - " + strconv.Itoa(currentUserID)})
+	order, err := u.orderService.AddOrder(currentUserID, orderNumber)
+	if err != nil {
+		if err == service.ErrOrderAlreadyExists {
+			c.JSON(http.StatusBadRequest, gin.H{"message": "order already exists"})
+			return
+		}
+
+		u.logger.Err(err)
+		c.JSON(http.StatusServiceUnavailable, gin.H{"message": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, &order)
 }

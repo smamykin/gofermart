@@ -8,8 +8,8 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/smamykin/gofermart/internal/config"
 	"github.com/smamykin/gofermart/internal/controller"
+	"github.com/smamykin/gofermart/internal/repository"
 	"github.com/smamykin/gofermart/internal/service"
-	"github.com/smamykin/gofermart/internal/storage"
 	"github.com/smamykin/gofermart/pkg/logger"
 	"github.com/smamykin/gofermart/pkg/pwdhash"
 )
@@ -35,33 +35,38 @@ func NewContainer(zLogger *zerolog.Logger) (c *Container, err error) {
 	c = &Container{}
 	c.config = cfg
 	c.db = db
-	c.userRepository = storage.NewUserRepository(c.db)
+	c.userRepository = repository.NewUserRepository(c.DB())
+	c.orderRepository = repository.NewOrderRepository(c.DB())
+	APISecret := []byte(c.Config().APISecret)
 	c.controllers = []controllerInterface{
-		controller.NewHealthcheckController(c.userRepository),
+		controller.NewHealthcheckController(c.userRepository), //todo check of the db should be outside user repository
 		controller.NewUserController(
 			&logger.ZeroLogAdapter{Logger: zLogger},
 			&service.UserService{
-				Storage:       c.userRepository,
-				HashGenerator: &pwdhash.HashGenerator{},
+				UserRepository: c.UserRepository(),
+				HashGenerator:  &pwdhash.HashGenerator{},
 			},
-			&service.OrderService{},
-			[]byte(cfg.APISecret),
-			cfg.TokenLifespan,
+			&service.OrderService{
+				OrderRepository: c.OrderRepository(),
+			},
+			APISecret,
+			c.Config().TokenLifespan,
 		),
 	}
-	c.router = createRouter(c.controllers, []byte(c.Config().APISecret))
+	c.router = createRouter(c.controllers, APISecret)
 	c.isOpen = true
 
 	return c, nil
 }
 
 type Container struct {
-	isOpen         bool
-	config         config.Config
-	controllers    []controllerInterface
-	db             *sql.DB
-	router         *gin.Engine
-	userRepository *storage.UserRepository
+	isOpen          bool
+	config          config.Config
+	controllers     []controllerInterface
+	db              *sql.DB
+	router          *gin.Engine
+	userRepository  *repository.UserRepository
+	orderRepository *repository.OrderRepository
 }
 
 func (c *Container) Controllers() []controllerInterface {
@@ -82,6 +87,10 @@ func (c *Container) DB() *sql.DB {
 
 func (c *Container) UserRepository() service.UserRepositoryInterface {
 	return c.userRepository
+}
+
+func (c *Container) OrderRepository() service.OrderRepositoryInterface {
+	return c.orderRepository
 }
 
 func (c *Container) IsOpen() bool {
@@ -113,13 +122,31 @@ func ensureSchemaExists(db *sql.DB) error {
 	}
 
 	_, err = db.Exec(`
+		--- User
 		CREATE TABLE "user" (
 			"id" SERIAL PRIMARY KEY,
 			"login" VARCHAR NOT NULL ,
 			"pwd" VARCHAR NOT NULL
 		);
 
-		CREATE UNIQUE INDEX name_type_unique ON "user" (login);
+		CREATE UNIQUE INDEX udx_login ON "user" (login);
+
+		--- Order
+		CREATE TABLE "order" (
+		    "id" SERIAL PRIMARY KEY,
+			"user_id" INTEGER NOT NULL,
+		    "order_number" VARCHAR NOT NULL,
+		    "status" INTEGER NOT NULL,
+		    "accrual_status" INTEGER NOT NULL,
+		    "accrual" INTEGER NOT NULL,
+		    "created_at" TIMESTAMP NOT NULL,
+			CONSTRAINT fk_customer
+			    FOREIGN KEY(user_id) 
+			    REFERENCES "user"(id)
+		);
+
+		CREATE UNIQUE INDEX udx_order_number ON "order" (order_number);
+		CREATE INDEX idx_user_id ON "order" (user_id);
 	`)
 
 	if err != nil {

@@ -1,0 +1,79 @@
+package repository
+
+import (
+	"database/sql"
+	"github.com/smamykin/gofermart/internal/entity"
+	"github.com/smamykin/gofermart/internal/service"
+	"time"
+)
+
+func NewOrderRepository(db *sql.DB) *OrderRepository {
+	return &OrderRepository{db: db}
+}
+
+type OrderRepository struct {
+	db *sql.DB
+}
+
+func (o *OrderRepository) AddOrder(order entity.Order) (entity.Order, error) {
+
+	order.CreatedAt = time.Now().UTC().Truncate(time.Second)
+	row := o.db.QueryRow(
+		`
+			INSERT INTO "order" (user_id, order_number, status, accrual_status, accrual, created_at) 
+			VALUES ($1, $2, $3, $4,$5, $6)
+			RETURNING id
+		`,
+		order.UserID,
+		order.OrderNumber,
+		order.Status,
+		order.AccrualStatus,
+		order.Accrual,
+		order.CreatedAt,
+	)
+
+	if row.Err() != nil {
+		return order, row.Err()
+	}
+
+	err := row.Scan(&order.ID)
+
+	return order, err
+}
+
+func (o *OrderRepository) GetOrder(ID int) (order entity.Order, err error) {
+	row := o.db.QueryRow(`
+		SELECT id, user_id, order_number, status, accrual_status, accrual, created_at
+		FROM "order"
+		WHERE id = $1
+	`, ID)
+
+	return hydrateOrder(row)
+}
+
+func (o *OrderRepository) GetOrderByOrderNumber(orderNumber string) (order entity.Order, err error) {
+	row := o.db.QueryRow(
+		`
+			SELECT id, user_id, order_number, status, accrual_status, accrual, created_at
+			FROM "order"
+			WHERE order_number = $1
+		`,
+		orderNumber,
+	)
+
+	return hydrateOrder(row)
+}
+
+func hydrateOrder(row *sql.Row) (order entity.Order, err error) {
+	if row.Err() != nil {
+		return order, row.Err()
+	}
+
+	err = row.Scan(&order.ID, &order.UserID, &order.OrderNumber, &order.Status, &order.AccrualStatus, &order.Accrual, &order.CreatedAt)
+
+	if err == sql.ErrNoRows {
+		return order, service.ErrEntityIsNotFound
+	}
+
+	return order, nil
+}

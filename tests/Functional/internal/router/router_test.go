@@ -2,10 +2,12 @@ package router
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/smamykin/gofermart/internal/container"
+	"github.com/smamykin/gofermart/internal/entity"
 	"github.com/smamykin/gofermart/pkg/pwdhash"
 	"github.com/smamykin/gofermart/pkg/token"
 	"github.com/smamykin/gofermart/tests/Functional/utils"
@@ -73,12 +75,17 @@ func TestOrderPost(t *testing.T) {
 	w := httptest.NewRecorder()
 	orderNumber := "12345678903"
 	req, _ := http.NewRequest("POST", "/api/user/orders", strings.NewReader(orderNumber))
-	authorize(t, 1, c, req)
+	userId := 1
+	authorize(t, userId, c, req)
 
 	r.ServeHTTP(w, req)
 
 	require.Equal(t, 200, w.Code, w.Body.String())
-	require.Equal(t, `{"message":"success - `+orderNumber+` - 1"}`, w.Body.String())
+	actualOrder := entity.Order{}
+	err := json.Unmarshal(w.Body.Bytes(), &actualOrder)
+	require.NoError(t, err)
+	require.Equal(t, actualOrder.OrderNumber, orderNumber)
+	require.Equal(t, actualOrder.UserID, userId)
 }
 
 func authorize(t *testing.T, userID int, c *container.Container, req *http.Request) {
