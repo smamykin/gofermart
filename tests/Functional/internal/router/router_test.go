@@ -7,6 +7,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/smamykin/gofermart/internal/container"
+	"github.com/smamykin/gofermart/internal/controller"
 	"github.com/smamykin/gofermart/internal/entity"
 	"github.com/smamykin/gofermart/pkg/pwdhash"
 	"github.com/smamykin/gofermart/pkg/token"
@@ -17,6 +18,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestPing(t *testing.T) {
@@ -114,10 +116,17 @@ func TestOrderList(t *testing.T) {
 	r.ServeHTTP(w, req)
 
 	require.Equal(t, 200, w.Code, w.Body.String())
-	var actualOrder []entity.Order
-	err = json.Unmarshal(w.Body.Bytes(), &actualOrder)
+	var actualResponse []controller.OrderResponseModel
+	err = json.Unmarshal(w.Body.Bytes(), &actualResponse)
 	require.NoError(t, err)
-	require.Equal(t, []entity.Order{orderToGet}, actualOrder)
+	require.Equal(t, []controller.OrderResponseModel{
+		{
+			Number:     orderToGet.OrderNumber,
+			Accrual:    orderToGet.Accrual,
+			Status:     orderToGet.Status.String(),
+			UploadedAt: orderToGet.CreatedAt.Format(time.RFC3339),
+		},
+	}, actualResponse)
 }
 
 func authorize(t *testing.T, userID int, c *container.Container, req *http.Request) {

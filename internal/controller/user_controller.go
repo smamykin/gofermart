@@ -140,11 +140,33 @@ func (u *UserController) orderListHandler(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusServiceUnavailable, gin.H{"message": err.Error()})
 		return
 	}
+	var orderResponseModels []OrderResponseModel
+	for _, order := range orders {
+		orderResponseModel := OrderResponseModel{
+			Number:     order.OrderNumber,
+			Status:     order.Status.String(),
+			Accrual:    order.Accrual,
+			UploadedAt: order.CreatedAt.Format(time.RFC3339),
+		}
+		orderResponseModels = append(orderResponseModels, orderResponseModel)
+	}
 
-	c.JSON(http.StatusOK, orders)
+	if len(orders) == 0 {
+		c.JSON(http.StatusNoContent, orderResponseModels)
+		return
+	}
+
+	c.JSON(http.StatusOK, orderResponseModels)
 }
 
 func getCurrentUserIDFromContext(c *gin.Context) int {
 	currentUserIDAsAny, _ := c.Get("current_user_id")
 	return currentUserIDAsAny.(int)
+}
+
+type OrderResponseModel struct {
+	Number     string `json:"number"`
+	Status     string `json:"status"`
+	Accrual    int    `json:"accrual,omitempty"`
+	UploadedAt string `json:"uploaded_at" `
 }
