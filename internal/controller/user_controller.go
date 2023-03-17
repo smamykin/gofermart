@@ -111,7 +111,17 @@ func (u *UserController) orderHandler(c *gin.Context) {
 	order, err := u.orderService.AddOrder(currentUserID, orderNumber)
 	if err != nil {
 		if err == service.ErrOrderAlreadyExists {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "order already exists"})
+			if order.UserID == currentUserID {
+				c.JSON(http.StatusOK, gin.H{"message": "order already exists"})
+				return
+			}
+
+			c.JSON(http.StatusConflict, gin.H{"message": "order already exists"})
+			return
+		}
+
+		if err == service.ErrInvalidOrderNumber {
+			c.JSON(http.StatusUnprocessableEntity, gin.H{"message": err.Error()})
 			return
 		}
 

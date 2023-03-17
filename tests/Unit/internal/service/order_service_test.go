@@ -41,7 +41,7 @@ func TestOrderService_AddOrder(t *testing.T) {
 			sut: service.OrderService{
 				OrderRepository: getOrderRepositoryMock(t, expectedOrder, nil, nil),
 			},
-			expectedOrder: entity.Order{},
+			expectedOrder: expectedOrder,
 			expectedErr:   service.ErrOrderAlreadyExists,
 		},
 		"unexpected error while getting the order": {

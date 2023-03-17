@@ -15,16 +15,17 @@ func (o *OrderService) AddOrder(userID int, orderNumber string) (order entity.Or
 		return entity.Order{}, err
 	}
 
+	order, err = o.OrderRepository.GetOrderByOrderNumber(orderNumber)
+	if err == nil {
+		return order, ErrOrderAlreadyExists
+	}
+
 	order = entity.Order{
 		UserID:        userID,
 		OrderNumber:   orderNumber,
 		Status:        entity.OrderStatusNew,
 		AccrualStatus: entity.AccrualStatusUndefined,
 		Accrual:       0,
-	}
-	_, err = o.OrderRepository.GetOrderByOrderNumber(orderNumber)
-	if err == nil {
-		return entity.Order{}, ErrOrderAlreadyExists
 	}
 
 	if err != ErrEntityIsNotFound {
@@ -51,22 +52,3 @@ func orderNumberValidation(numberAsString string) error {
 	}
 	return nil
 }
-
-//func checksum(number int) int {
-//	var luhn int
-//
-//	for i := 0; number > 0; i++ {
-//		cur := number % 10
-//
-//		if i%2 == 0 { // even
-//			cur = cur * 2
-//			if cur > 9 {
-//				cur = cur%10 + cur/10
-//			}
-//		}
-//
-//		luhn += cur
-//		number = number / 10
-//	}
-//	return luhn % 10
-//}

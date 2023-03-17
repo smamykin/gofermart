@@ -69,13 +69,12 @@ func TestOrderPost(t *testing.T) {
 
 	pwd := "pancake"
 	login := "cheesecake"
-	addUserWithHashedPwdToDB(t, pwd, login, c.DB())
+	userID := addUserWithHashedPwdToDB(t, pwd, login, c.DB()).ID
 
 	r := c.Router()
 	w := httptest.NewRecorder()
 	orderNumber := "12345678903"
 	req, _ := http.NewRequest("POST", "/api/user/orders", strings.NewReader(orderNumber))
-	userID := 1
 	authorize(t, userID, c, req)
 
 	r.ServeHTTP(w, req)
@@ -143,12 +142,12 @@ func assertAuthorizationHeader(t *testing.T, w *httptest.ResponseRecorder, c *co
 	require.Equal(t, 1, int(id))
 }
 
-func addUserWithHashedPwdToDB(t *testing.T, pwd string, login string, db *sql.DB) {
+func addUserWithHashedPwdToDB(t *testing.T, pwd string, login string, db *sql.DB) entity.User {
 	hg := pwdhash.HashGenerator{}
 	pwdHash, err := hg.Generate(pwd)
 	require.Nil(t, err)
 
-	utils.InsertUser(t, db, entity.User{
+	return utils.InsertUser(t, db, entity.User{
 		Login: login, Pwd: pwdHash,
 	})
 }

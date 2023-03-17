@@ -140,7 +140,7 @@ func ensureSchemaExists(db *sql.DB) error {
 		    "accrual_status" INTEGER NOT NULL,
 		    "accrual" INTEGER NOT NULL,
 		    "created_at" TIMESTAMP NOT NULL,
-			CONSTRAINT fk_customer
+			CONSTRAINT fk_order_user
 			    FOREIGN KEY(user_id) 
 			    REFERENCES "user"(id)
 		);
