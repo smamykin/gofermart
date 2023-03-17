@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/smamykin/gofermart/internal/service"
@@ -98,10 +97,6 @@ func (u *UserController) loginHandler(c *gin.Context) {
 
 func (u *UserController) orderHandler(c *gin.Context) {
 	currentUserID := getCurrentUserIDFromContext(c)
-	if c.Request == nil {
-		u.logger.Err(errors.New("request is really nil"))
-	}
-
 	body, err := c.GetRawData()
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "cannot read body"})
@@ -125,7 +120,7 @@ func (u *UserController) orderHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, &order)
+	c.JSON(http.StatusAccepted, &order)
 }
 
 func (u *UserController) orderListHandler(c *gin.Context) {

@@ -80,7 +80,7 @@ func TestOrderPost(t *testing.T) {
 
 	r.ServeHTTP(w, req)
 
-	require.Equal(t, 200, w.Code, w.Body.String())
+	require.Equal(t, http.StatusAccepted, w.Code, w.Body.String())
 	actualOrder := entity.Order{}
 	err := json.Unmarshal(w.Body.Bytes(), &actualOrder)
 	require.NoError(t, err)
