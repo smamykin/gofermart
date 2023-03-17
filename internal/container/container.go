@@ -35,15 +35,16 @@ func NewContainer(zLogger *zerolog.Logger) (c *Container, err error) {
 	c = &Container{}
 	c.config = cfg
 	c.db = db
-	c.storage = storage.NewDBStorage(c.db)
+	c.userRepository = storage.NewUserRepository(c.db)
 	c.controllers = []controllerInterface{
-		controller.NewHealthcheckController(c.storage),
+		controller.NewHealthcheckController(c.userRepository),
 		controller.NewUserController(
 			&logger.ZeroLogAdapter{Logger: zLogger},
-			service.UserService{
-				Storage:       c.storage,
+			&service.UserService{
+				Storage:       c.userRepository,
 				HashGenerator: &pwdhash.HashGenerator{},
 			},
+			&service.OrderService{},
 			[]byte(cfg.APISecret),
 			cfg.TokenLifespan,
 		),
@@ -55,12 +56,12 @@ func NewContainer(zLogger *zerolog.Logger) (c *Container, err error) {
 }
 
 type Container struct {
-	isOpen      bool
-	config      config.Config
-	controllers []controllerInterface
-	db          *sql.DB
-	router      *gin.Engine
-	storage     *storage.DBStorage
+	isOpen         bool
+	config         config.Config
+	controllers    []controllerInterface
+	db             *sql.DB
+	router         *gin.Engine
+	userRepository *storage.UserRepository
 }
 
 func (c *Container) Controllers() []controllerInterface {
@@ -79,11 +80,11 @@ func (c *Container) DB() *sql.DB {
 	return c.db
 }
 
-func (c *Container) Storage() service.StorageInterface {
-	return c.storage
+func (c *Container) UserRepository() service.UserRepositoryInterface {
+	return c.userRepository
 }
 
-func (c Container) IsOpen() bool {
+func (c *Container) IsOpen() bool {
 	return c.isOpen
 }
 

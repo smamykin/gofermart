@@ -78,7 +78,7 @@ func TestOrderPost(t *testing.T) {
 	r.ServeHTTP(w, req)
 
 	require.Equal(t, 200, w.Code, w.Body.String())
-	require.Equal(t, `{"message":"success - `+orderNumber+`"}`, w.Body.String())
+	require.Equal(t, `{"message":"success - `+orderNumber+` - 1"}`, w.Body.String())
 }
 
 func authorize(t *testing.T, userID int, c *container.Container, req *http.Request) {

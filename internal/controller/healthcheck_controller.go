@@ -6,14 +6,14 @@ import (
 	"net/http"
 )
 
-func NewHealthcheckController(DBStorage *storage.DBStorage) *HealthcheckController {
+func NewHealthcheckController(userRepository *storage.UserRepository) *HealthcheckController {
 	return &HealthcheckController{
-		DBStorage: DBStorage,
+		UserRepository: userRepository,
 	}
 }
 
 type HealthcheckController struct {
-	DBStorage *storage.DBStorage
+	UserRepository *storage.UserRepository
 }
 
 func (h *HealthcheckController) SetupRoutes(public *gin.RouterGroup, protected *gin.RouterGroup) {
@@ -24,7 +24,7 @@ func (h *HealthcheckController) HealthcheckHandler(c *gin.Context) {
 	type metric struct {
 		DBError string
 	}
-	err := h.DBStorage.Healthcheck(c)
+	err := h.UserRepository.Healthcheck(c)
 	if err != nil {
 		c.JSON(http.StatusServiceUnavailable, metric{
 			DBError: err.Error(),

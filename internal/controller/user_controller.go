@@ -8,18 +8,21 @@ import (
 	"github.com/smamykin/gofermart/pkg/token"
 	"io"
 	"net/http"
+	"strconv"
 	"time"
 )
 
 func NewUserController(
 	logger contracts.LoggerInterface,
-	userService service.UserService,
+	userService *service.UserService,
+	orderService *service.OrderService,
 	apiSecret []byte,
 	tokenLifespan time.Duration,
 ) *UserController {
 	return &UserController{
 		logger:        logger,
 		userService:   userService,
+		orderService:  orderService,
 		apiSecret:     apiSecret,
 		tokenLifespan: tokenLifespan,
 	}
@@ -27,7 +30,8 @@ func NewUserController(
 
 type UserController struct {
 	logger        contracts.LoggerInterface
-	userService   service.UserService
+	userService   *service.UserService
+	orderService  *service.OrderService
 	apiSecret     []byte
 	tokenLifespan time.Duration
 }
@@ -93,8 +97,8 @@ func (u *UserController) loginHandler(c *gin.Context) {
 }
 
 func (u *UserController) orderHandler(c *gin.Context) {
-	//currentUserID, _ := c.Get("current_user_id")
-	//c.orderService.add
+	currentUserIDAsAny, _ := c.Get("current_user_id")
+	currentUserID := currentUserIDAsAny.(int)
 	var body []byte
 	getBody, err := c.Request.GetBody()
 	if err != nil {
@@ -109,6 +113,12 @@ func (u *UserController) orderHandler(c *gin.Context) {
 	defer getBody.Close()
 
 	// todo using order service create order and save it
+	//c.orderService.add
+	orderNumber, err := strconv.Atoi(string(body))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "cannot fetch an order number from the  body"})
+	}
+	u.orderService.AddOrder(currentUserID, orderNumber)
 	// todo create gorutine that will ask accrual about statuses
-	c.JSON(http.StatusOK, gin.H{"message": "success - " + string(body)})
+	c.JSON(http.StatusOK, gin.H{"message": "success - " + string(body) + " - " + strconv.Itoa(currentUserID)})
 }

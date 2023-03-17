@@ -11,24 +11,24 @@ import (
 	"testing"
 )
 
-func TestDBStorage_UpsertUser(t *testing.T) {
+func TestUserRepository_UpsertUser(t *testing.T) {
 	c := utils.GetContainer(t)
 	db := c.DB()
 	utils.TruncateTable(t, db)
-	store := c.Storage()
+	repository := c.UserRepository()
 
-	user, err := store.UpsertUser("cheesecake", "pwd")
+	user, err := repository.UpsertUser("cheesecake", "pwd")
 	require.NoError(t, err)
 	expectedUser := entity.User{ID: 1, Login: "cheesecake", Pwd: "pwd"}
 	assertUsersInDB(t, db, []entity.User{expectedUser})
 	require.Equal(t, expectedUser, user)
 
-	user, err = store.UpsertUser("cheesecake", "pwd2")
+	user, err = repository.UpsertUser("cheesecake", "pwd2")
 	require.NoError(t, err)
 	expectedUser = entity.User{ID: 1, Login: "cheesecake", Pwd: "pwd2"}
 	assertUsersInDB(t, db, []entity.User{expectedUser})
 	require.Equal(t, expectedUser, user)
-	user, err = store.UpsertUser("cheesecake2", "pwd")
+	user, err = repository.UpsertUser("cheesecake2", "pwd")
 	require.NoError(t, err)
 	expectedUser = entity.User{ID: 3, Login: "cheesecake2", Pwd: "pwd"}
 	assertUsersInDB(t, db, []entity.User{
@@ -38,7 +38,7 @@ func TestDBStorage_UpsertUser(t *testing.T) {
 	require.Equal(t, expectedUser, user)
 }
 
-func TestDBStorage_GetUserByLogin(t *testing.T) {
+func TestUserRepository_GetUserByLogin(t *testing.T) {
 	c := utils.GetContainer(t)
 	db := c.DB()
 	utils.TruncateTable(t, db)
@@ -50,13 +50,13 @@ func TestDBStorage_GetUserByLogin(t *testing.T) {
 	}
 	insertUser(t, db, expected)
 
-	store := c.Storage()
+	repository := c.UserRepository()
 
-	actual, err := store.GetUserByLogin("foo")
+	actual, err := repository.GetUserByLogin("foo")
 	require.Nil(t, err)
 	assert.Equal(t, expected, actual)
 
-	_, err = store.GetUserByLogin("baz")
+	_, err = repository.GetUserByLogin("baz")
 	assert.Equal(t, service.ErrUserIsNotFound, err)
 
 }

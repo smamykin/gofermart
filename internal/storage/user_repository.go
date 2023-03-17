@@ -8,11 +8,11 @@ import (
 	"time"
 )
 
-func NewDBStorage(db *sql.DB) *DBStorage {
-	return &DBStorage{db: db}
+func NewUserRepository(db *sql.DB) *UserRepository {
+	return &UserRepository{db: db}
 }
 
-type DBStorage struct {
+type UserRepository struct {
 	db *sql.DB
 }
 
@@ -22,7 +22,15 @@ var getUserByLoginSQL = `
 	WHERE login = $1
 `
 
-func (d *DBStorage) GetUserByLogin(login string) (u entity.User, err error) {
+var upsertUserSQL = `
+	INSERT INTO "user" (login, pwd) 
+	VALUES ($1, $2)
+	ON CONFLICT (login) DO UPDATE 
+		SET pwd = EXCLUDED.pwd
+	RETURNING id, login, pwd
+`
+
+func (d *UserRepository) GetUserByLogin(login string) (u entity.User, err error) {
 	row := d.db.QueryRow(getUserByLoginSQL, login)
 	if row.Err() != nil {
 		return u, row.Err()
@@ -40,15 +48,7 @@ func (d *DBStorage) GetUserByLogin(login string) (u entity.User, err error) {
 	return u, err
 }
 
-var upsertUserSQL = `
-	INSERT INTO "user" (login, pwd) 
-	VALUES ($1, $2)
-	ON CONFLICT (login) DO UPDATE 
-		SET pwd = EXCLUDED.pwd
-	RETURNING id, login, pwd
-`
-
-func (d *DBStorage) UpsertUser(login, pwd string) (user entity.User, err error) {
+func (d *UserRepository) UpsertUser(login, pwd string) (user entity.User, err error) {
 	row := d.db.QueryRow(upsertUserSQL, login, pwd)
 	if row.Err() != nil {
 		return user, row.Err()
@@ -61,7 +61,7 @@ func (d *DBStorage) UpsertUser(login, pwd string) (user entity.User, err error) 
 	return user, err
 }
 
-func (d *DBStorage) Healthcheck(ctx context.Context) error {
+func (d *UserRepository) Healthcheck(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
 	defer cancel()
 
