@@ -20,7 +20,7 @@ func Generate(userID int, apiSecret []byte, tokenLifespan time.Duration) (string
 	return token.SignedString(apiSecret)
 }
 
-func GetCurrentUserId(c *gin.Context, apiSecret []byte) (int, error) {
+func GetCurrentUserID(c *gin.Context, apiSecret []byte) (int, error) {
 	tokenString := ExtractToken(c.Request)
 	tkn, err := ParseString(tokenString, apiSecret)
 	if err != nil {

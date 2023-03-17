@@ -6,7 +6,6 @@ import (
 	"github.com/smamykin/gofermart/internal/service"
 	"github.com/smamykin/gofermart/pkg/contracts"
 	"github.com/smamykin/gofermart/pkg/token"
-	"io"
 	"net/http"
 	"time"
 )
@@ -39,6 +38,7 @@ func (u *UserController) SetupRoutes(public *gin.RouterGroup, protected *gin.Rou
 	public.POST("/api/user/register", u.registerHandler)
 	public.POST("/api/user/login", u.loginHandler)
 	protected.POST("/api/user/orders", u.orderHandler)
+	protected.GET("/api/user/orders", u.orderListHandler)
 }
 
 func (u *UserController) registerHandler(c *gin.Context) {
@@ -96,20 +96,12 @@ func (u *UserController) loginHandler(c *gin.Context) {
 }
 
 func (u *UserController) orderHandler(c *gin.Context) {
-	currentUserIDAsAny, _ := c.Get("current_user_id")
-	currentUserID := currentUserIDAsAny.(int)
-	var body []byte
-	getBody, err := c.Request.GetBody()
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "cannot get body"})
-		return
-	}
-	body, err = io.ReadAll(getBody)
+	currentUserID := getCurrentUserIDFromContext(c)
+	body, err := c.GetRawData()
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "cannot read body"})
 		return
 	}
-	defer getBody.Close()
 
 	orderNumber := string(body)
 	if orderNumber == "" {
@@ -119,7 +111,17 @@ func (u *UserController) orderHandler(c *gin.Context) {
 	order, err := u.orderService.AddOrder(currentUserID, orderNumber)
 	if err != nil {
 		if err == service.ErrOrderAlreadyExists {
-			c.JSON(http.StatusBadRequest, gin.H{"message": "order already exists"})
+			if order.UserID == currentUserID {
+				c.JSON(http.StatusOK, gin.H{"message": "order already exists"})
+				return
+			}
+
+			c.JSON(http.StatusConflict, gin.H{"message": "order already exists"})
+			return
+		}
+
+		if err == service.ErrInvalidOrderNumber {
+			c.JSON(http.StatusUnprocessableEntity, gin.H{"message": err.Error()})
 			return
 		}
 
@@ -128,5 +130,43 @@ func (u *UserController) orderHandler(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, &order)
+	c.JSON(http.StatusAccepted, &order)
+}
+
+func (u *UserController) orderListHandler(c *gin.Context) {
+	userID := getCurrentUserIDFromContext(c)
+	orders, err := u.orderService.GetAllOrdersByUserID(userID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusServiceUnavailable, gin.H{"message": err.Error()})
+		return
+	}
+	var orderResponseModels []OrderResponseModel
+	for _, order := range orders {
+		orderResponseModel := OrderResponseModel{
+			Number:     order.OrderNumber,
+			Status:     order.Status.String(),
+			Accrual:    order.Accrual,
+			UploadedAt: order.CreatedAt.Format(time.RFC3339),
+		}
+		orderResponseModels = append(orderResponseModels, orderResponseModel)
+	}
+
+	if len(orders) == 0 {
+		c.JSON(http.StatusNoContent, orderResponseModels)
+		return
+	}
+
+	c.JSON(http.StatusOK, orderResponseModels)
+}
+
+func getCurrentUserIDFromContext(c *gin.Context) int {
+	currentUserIDAsAny, _ := c.Get("current_user_id")
+	return currentUserIDAsAny.(int)
+}
+
+type OrderResponseModel struct {
+	Number     string `json:"number"`
+	Status     string `json:"status"`
+	Accrual    int    `json:"accrual,omitempty"`
+	UploadedAt string `json:"uploaded_at" `
 }

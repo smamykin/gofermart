@@ -16,6 +16,7 @@ type OrderRepositoryInterface interface {
 	AddOrder(o entity.Order) (order entity.Order, err error)
 	GetOrder(ID int) (order entity.Order, err error)
 	GetOrderByOrderNumber(orderNumber string) (order entity.Order, err error)
+	GetAllByUserID(userID int) ([]entity.Order, error)
 }
 
 type HashGeneratorInterface interface {
@@ -31,6 +32,7 @@ var ErrEntityIsNotFound = errors.New("entity is not found")
 var ErrLoginIsNotValid = errors.New("login is incorrect")
 var ErrPwdIsNotValid = errors.New("password is incorrect")
 var ErrOrderAlreadyExists = errors.New("order already exists")
+var ErrInvalidOrderNumber = errors.New("order number is invalid")
 
 //endregion errors
 

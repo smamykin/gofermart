@@ -26,6 +26,7 @@ func TestOrderRepository_AddOrder(t *testing.T) {
 	timeMin := time.Now()
 	actualOrder, err := sut.AddOrder(expectedOrder)
 	timeMax := time.Now()
+	require.NoError(t, err)
 
 	expectedOrder.ID = 1 // because the table was truncated beforehand, we can guess the id
 
@@ -61,6 +62,35 @@ func TestOrderRepository_GetOrderByOrderNumber(t *testing.T) {
 
 	_, err = sut.GetOrderByOrderNumber("unknown order number")
 	require.Equal(t, err, service.ErrEntityIsNotFound)
+}
+
+func TestOrderRepository_GetAllByUserID(t *testing.T) {
+	c := utils.GetContainer(t)
+	db := c.DB()
+	utils.TruncateTable(t, db)
+
+	userToGet := utils.InsertUser(t, db, entity.User{})
+	userNotToGet := utils.InsertUser(t, db, entity.User{})
+	sut := c.OrderRepository()
+	orderToGet, err := c.OrderRepository().AddOrder(entity.Order{
+		UserID:      userToGet.ID,
+		OrderNumber: "123",
+	})
+	require.NoError(t, err)
+	_, err = c.OrderRepository().AddOrder(entity.Order{
+		UserID:      userNotToGet.ID,
+		OrderNumber: "321",
+	})
+	require.NoError(t, err)
+
+	actualOrders, err := sut.GetAllByUserID(userToGet.ID)
+	require.NoError(t, err)
+
+	require.Equal(t, []entity.Order{orderToGet}, actualOrders)
+
+	actualOrders, err = sut.GetAllByUserID(999)
+	require.Equal(t, []entity.Order{}, actualOrders)
+	require.Equal(t, err, nil)
 }
 
 func assertOrder(t *testing.T, expected entity.Order, actual entity.Order, createAtMin time.Time, createAtMax time.Time) {

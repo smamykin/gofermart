@@ -12,7 +12,7 @@ import (
 
 func TestOrderService_AddOrder(t *testing.T) {
 	userID := 1
-	orderNumber := "1"
+	orderNumber := "2755060072"
 	expectedOrder := entity.Order{
 		UserID:      userID,
 		OrderNumber: orderNumber,
@@ -41,7 +41,7 @@ func TestOrderService_AddOrder(t *testing.T) {
 			sut: service.OrderService{
 				OrderRepository: getOrderRepositoryMock(t, expectedOrder, nil, nil),
 			},
-			expectedOrder: entity.Order{},
+			expectedOrder: expectedOrder,
 			expectedErr:   service.ErrOrderAlreadyExists,
 		},
 		"unexpected error while getting the order": {
@@ -61,6 +61,15 @@ func TestOrderService_AddOrder(t *testing.T) {
 			},
 			expectedOrder: entity.Order{},
 			expectedErr:   errors.New("some unexpected error"),
+		},
+		"wrong order number (not Luhn's algorithm)": {
+			userID:      userID,
+			orderNumber: "123",
+			sut: service.OrderService{
+				OrderRepository: getOrderRepositoryMock(t, entity.Order{OrderNumber: "123"}, nil, nil),
+			},
+			expectedOrder: entity.Order{},
+			expectedErr:   service.ErrInvalidOrderNumber,
 		},
 	}
 

@@ -39,7 +39,7 @@ func NewContainer(zLogger *zerolog.Logger) (c *Container, err error) {
 	c.orderRepository = repository.NewOrderRepository(c.DB())
 	APISecret := []byte(c.Config().APISecret)
 	c.controllers = []controllerInterface{
-		controller.NewHealthcheckController(c.userRepository), //todo check of the db should be outside user repository
+		controller.NewHealthcheckController(repository.CreateHealthcheckFunc(c.DB())),
 		controller.NewUserController(
 			&logger.ZeroLogAdapter{Logger: zLogger},
 			&service.UserService{
@@ -140,7 +140,7 @@ func ensureSchemaExists(db *sql.DB) error {
 		    "accrual_status" INTEGER NOT NULL,
 		    "accrual" INTEGER NOT NULL,
 		    "created_at" TIMESTAMP NOT NULL,
-			CONSTRAINT fk_customer
+			CONSTRAINT fk_order_user
 			    FOREIGN KEY(user_id) 
 			    REFERENCES "user"(id)
 		);
