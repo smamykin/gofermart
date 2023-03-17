@@ -32,6 +32,7 @@ var ErrEntityIsNotFound = errors.New("entity is not found")
 var ErrLoginIsNotValid = errors.New("login is incorrect")
 var ErrPwdIsNotValid = errors.New("password is incorrect")
 var ErrOrderAlreadyExists = errors.New("order already exists")
+var ErrInvalidOrderNumber = errors.New("order number is invalid")
 
 //endregion errors
 
