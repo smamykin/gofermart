@@ -17,6 +17,11 @@ type OrderRepositoryInterface interface {
 	GetOrder(ID int) (order entity.Order, err error)
 	GetOrderByOrderNumber(orderNumber string) (order entity.Order, err error)
 	GetAllByUserID(userID int) ([]entity.Order, error)
+	UpdateOrder(order entity.Order) (entity.Order, error)
+	GetOrdersWithUnfinishedStatus() ([]entity.Order, error)
+}
+type AccrualClientInterface interface {
+	GetOrder(orderNumber string) (AccrualOrder, error)
 }
 
 type HashGeneratorInterface interface {
@@ -41,6 +46,11 @@ var ErrInvalidOrderNumber = errors.New("order number is invalid")
 type Credentials struct {
 	Login string `json:"login"`
 	Pwd   string `json:"password"`
+}
+type AccrualOrder struct {
+	Order   string
+	Status  entity.AccrualStatus
+	Accrual int
 }
 
 //endregion DTO

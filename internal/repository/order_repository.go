@@ -81,6 +81,12 @@ func (o *OrderRepository) GetAllByUserID(userID int) ([]entity.Order, error) {
 	return hydrateOrders(rows)
 }
 
+func (o *OrderRepository) UpdateOrder(order entity.Order) (entity.Order, error) {
+	panic("implement me")
+
+	return order, nil
+}
+
 func hydrateOrder(row *sql.Row) (order entity.Order, err error) {
 	if row.Err() != nil {
 		return order, row.Err()
