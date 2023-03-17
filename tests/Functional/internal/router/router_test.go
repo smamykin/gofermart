@@ -51,7 +51,7 @@ func TestLogin(t *testing.T) {
 
 	pwd := "pancake"
 	login := "cheesecake"
-	addUserToDB(t, pwd, login, c.DB())
+	addUserWithHashedPwdToDB(t, pwd, login, c.DB())
 
 	r := c.Router()
 	w := httptest.NewRecorder()
@@ -69,7 +69,7 @@ func TestOrderPost(t *testing.T) {
 
 	pwd := "pancake"
 	login := "cheesecake"
-	addUserToDB(t, pwd, login, c.DB())
+	addUserWithHashedPwdToDB(t, pwd, login, c.DB())
 
 	r := c.Router()
 	w := httptest.NewRecorder()
@@ -86,6 +86,39 @@ func TestOrderPost(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, actualOrder.OrderNumber, orderNumber)
 	require.Equal(t, actualOrder.UserID, userId)
+}
+
+func TestOrderList(t *testing.T) {
+	c := utils.GetContainer(t)
+	utils.TruncateTable(t, c.DB())
+
+	user := utils.InsertUser(t, c.DB(), entity.User{})
+	userNotToGet := utils.InsertUser(t, c.DB(), entity.User{})
+
+	//create orders to get
+	orderToGet, err := c.OrderRepository().AddOrder(entity.Order{
+		UserID:      user.ID,
+		OrderNumber: "123",
+	})
+	require.NoError(t, err)
+	_, err = c.OrderRepository().AddOrder(entity.Order{
+		UserID:      userNotToGet.ID,
+		OrderNumber: "321",
+	})
+	require.NoError(t, err)
+
+	r := c.Router()
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/api/user/orders", nil)
+	authorize(t, user.ID, c, req)
+
+	r.ServeHTTP(w, req)
+
+	require.Equal(t, 200, w.Code, w.Body.String())
+	var actualOrder []entity.Order
+	err = json.Unmarshal(w.Body.Bytes(), &actualOrder)
+	require.NoError(t, err)
+	require.Equal(t, []entity.Order{orderToGet}, actualOrder)
 }
 
 func authorize(t *testing.T, userID int, c *container.Container, req *http.Request) {
@@ -110,12 +143,14 @@ func assertAuthorizationHeader(t *testing.T, w *httptest.ResponseRecorder, c *co
 	require.Equal(t, 1, int(id))
 }
 
-func addUserToDB(t *testing.T, pwd string, login string, db *sql.DB) {
+func addUserWithHashedPwdToDB(t *testing.T, pwd string, login string, db *sql.DB) {
 	hg := pwdhash.HashGenerator{}
 	pwdHash, err := hg.Generate(pwd)
 	require.Nil(t, err)
-	_, err = db.Exec(`INSERT INTO "user" (login, pwd) VALUES ($1, $2)`, login, pwdHash)
-	require.Nil(t, err)
+
+	utils.InsertUser(t, db, entity.User{
+		Login: login, Pwd: pwdHash,
+	})
 }
 
 func assertUser(t *testing.T, db *sql.DB, login string) {

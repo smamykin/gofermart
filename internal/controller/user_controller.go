@@ -39,6 +39,7 @@ func (u *UserController) SetupRoutes(public *gin.RouterGroup, protected *gin.Rou
 	public.POST("/api/user/register", u.registerHandler)
 	public.POST("/api/user/login", u.loginHandler)
 	protected.POST("/api/user/orders", u.orderHandler)
+	protected.GET("/api/user/orders", u.orderListHandler)
 }
 
 func (u *UserController) registerHandler(c *gin.Context) {
@@ -96,8 +97,7 @@ func (u *UserController) loginHandler(c *gin.Context) {
 }
 
 func (u *UserController) orderHandler(c *gin.Context) {
-	currentUserIDAsAny, _ := c.Get("current_user_id")
-	currentUserID := currentUserIDAsAny.(int)
+	currentUserID := getCurrentUserIdFromContext(c)
 	var body []byte
 	getBody, err := c.Request.GetBody()
 	if err != nil {
@@ -129,4 +129,20 @@ func (u *UserController) orderHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, &order)
+}
+
+func (u *UserController) orderListHandler(c *gin.Context) {
+	userID := getCurrentUserIdFromContext(c)
+	orders, err := u.orderService.GetAllOrdersByUserID(userID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusServiceUnavailable, gin.H{"message": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, orders)
+}
+
+func getCurrentUserIdFromContext(c *gin.Context) int {
+	currentUserIDAsAny, _ := c.Get("current_user_id")
+	return currentUserIDAsAny.(int)
 }

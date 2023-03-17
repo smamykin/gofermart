@@ -16,6 +16,7 @@ type OrderRepositoryInterface interface {
 	AddOrder(o entity.Order) (order entity.Order, err error)
 	GetOrder(ID int) (order entity.Order, err error)
 	GetOrderByOrderNumber(orderNumber string) (order entity.Order, err error)
+	GetAllByUserID(userID int) ([]entity.Order, error)
 }
 
 type HashGeneratorInterface interface {

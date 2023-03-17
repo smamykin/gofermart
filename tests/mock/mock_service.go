@@ -102,6 +102,21 @@ func (mr *MockOrderRepositoryInterfaceMockRecorder) AddOrder(o interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddOrder", reflect.TypeOf((*MockOrderRepositoryInterface)(nil).AddOrder), o)
 }
 
+// GetAllByUserID mocks base method.
+func (m *MockOrderRepositoryInterface) GetAllByUserID(userID int) ([]entity.Order, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAllByUserID", userID)
+	ret0, _ := ret[0].([]entity.Order)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAllByUserID indicates an expected call of GetAllByUserID.
+func (mr *MockOrderRepositoryInterfaceMockRecorder) GetAllByUserID(userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllByUserID", reflect.TypeOf((*MockOrderRepositoryInterface)(nil).GetAllByUserID), userID)
+}
+
 // GetOrder mocks base method.
 func (m *MockOrderRepositoryInterface) GetOrder(ID int) (entity.Order, error) {
 	m.ctrl.T.Helper()

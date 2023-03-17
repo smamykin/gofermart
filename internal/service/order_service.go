@@ -33,3 +33,7 @@ func (o *OrderService) AddOrder(userID int, orderNumber string) (order entity.Or
 
 	return order, nil
 }
+
+func (o *OrderService) GetAllOrdersByUserID(userID int) (orders []entity.Order, err error) {
+	return o.OrderRepository.GetAllByUserID(userID)
+}

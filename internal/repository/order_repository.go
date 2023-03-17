@@ -64,6 +64,23 @@ func (o *OrderRepository) GetOrderByOrderNumber(orderNumber string) (order entit
 	return hydrateOrder(row)
 }
 
+func (o *OrderRepository) GetAllByUserID(userID int) ([]entity.Order, error) {
+	rows, err := o.db.Query(
+		`
+			SELECT id, user_id, order_number, status, accrual_status, accrual, created_at
+			FROM "order"
+			WHERE user_id = $1
+		`,
+		userID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	return hydrateOrders(rows)
+}
+
 func hydrateOrder(row *sql.Row) (order entity.Order, err error) {
 	if row.Err() != nil {
 		return order, row.Err()
@@ -75,5 +92,25 @@ func hydrateOrder(row *sql.Row) (order entity.Order, err error) {
 		return order, service.ErrEntityIsNotFound
 	}
 
-	return order, nil
+	return order, err
+}
+
+func hydrateOrders(rows *sql.Rows) (orders []entity.Order, err error) {
+	orders = make([]entity.Order, 0)
+	for rows.Next() {
+		var order entity.Order
+		err = rows.Scan(&order.ID, &order.UserID, &order.OrderNumber, &order.Status, &order.AccrualStatus, &order.Accrual, &order.CreatedAt)
+		if err != nil {
+			return nil, err
+		}
+
+		orders = append(orders, order)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return orders, nil
 }
