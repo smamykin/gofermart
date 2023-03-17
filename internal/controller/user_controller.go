@@ -97,7 +97,7 @@ func (u *UserController) loginHandler(c *gin.Context) {
 }
 
 func (u *UserController) orderHandler(c *gin.Context) {
-	currentUserID := getCurrentUserIdFromContext(c)
+	currentUserID := getCurrentUserIDFromContext(c)
 	var body []byte
 	getBody, err := c.Request.GetBody()
 	if err != nil {
@@ -132,7 +132,7 @@ func (u *UserController) orderHandler(c *gin.Context) {
 }
 
 func (u *UserController) orderListHandler(c *gin.Context) {
-	userID := getCurrentUserIdFromContext(c)
+	userID := getCurrentUserIDFromContext(c)
 	orders, err := u.orderService.GetAllOrdersByUserID(userID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusServiceUnavailable, gin.H{"message": err.Error()})
@@ -142,7 +142,7 @@ func (u *UserController) orderListHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, orders)
 }
 
-func getCurrentUserIdFromContext(c *gin.Context) int {
+func getCurrentUserIDFromContext(c *gin.Context) int {
 	currentUserIDAsAny, _ := c.Get("current_user_id")
 	return currentUserIDAsAny.(int)
 }

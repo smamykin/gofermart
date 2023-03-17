@@ -1,19 +1,19 @@
 package controller
 
 import (
+	"context"
 	"github.com/gin-gonic/gin"
-	"github.com/smamykin/gofermart/internal/repository"
 	"net/http"
 )
 
-func NewHealthcheckController(userRepository *repository.UserRepository) *HealthcheckController {
+func NewHealthcheckController(HealthcheckStorage func(ctx context.Context) error) *HealthcheckController {
 	return &HealthcheckController{
-		UserRepository: userRepository,
+		HealthcheckStorage: HealthcheckStorage,
 	}
 }
 
 type HealthcheckController struct {
-	UserRepository *repository.UserRepository
+	HealthcheckStorage func(ctx context.Context) error
 }
 
 func (h *HealthcheckController) SetupRoutes(public *gin.RouterGroup, protected *gin.RouterGroup) {
@@ -24,7 +24,7 @@ func (h *HealthcheckController) HealthcheckHandler(c *gin.Context) {
 	type metric struct {
 		DBError string
 	}
-	err := h.UserRepository.Healthcheck(c)
+	err := h.HealthcheckStorage(c)
 	if err != nil {
 		c.JSON(http.StatusServiceUnavailable, metric{
 			DBError: err.Error(),

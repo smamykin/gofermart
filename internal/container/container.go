@@ -39,7 +39,7 @@ func NewContainer(zLogger *zerolog.Logger) (c *Container, err error) {
 	c.orderRepository = repository.NewOrderRepository(c.DB())
 	APISecret := []byte(c.Config().APISecret)
 	c.controllers = []controllerInterface{
-		controller.NewHealthcheckController(c.userRepository), //todo check of the db should be outside user repository
+		controller.NewHealthcheckController(repository.CreateHealthcheckFunc(c.DB())),
 		controller.NewUserController(
 			&logger.ZeroLogAdapter{Logger: zLogger},
 			&service.UserService{

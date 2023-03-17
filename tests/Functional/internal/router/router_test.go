@@ -75,8 +75,8 @@ func TestOrderPost(t *testing.T) {
 	w := httptest.NewRecorder()
 	orderNumber := "12345678903"
 	req, _ := http.NewRequest("POST", "/api/user/orders", strings.NewReader(orderNumber))
-	userId := 1
-	authorize(t, userId, c, req)
+	userID := 1
+	authorize(t, userID, c, req)
 
 	r.ServeHTTP(w, req)
 
@@ -85,7 +85,7 @@ func TestOrderPost(t *testing.T) {
 	err := json.Unmarshal(w.Body.Bytes(), &actualOrder)
 	require.NoError(t, err)
 	require.Equal(t, actualOrder.OrderNumber, orderNumber)
-	require.Equal(t, actualOrder.UserID, userId)
+	require.Equal(t, actualOrder.UserID, userID)
 }
 
 func TestOrderList(t *testing.T) {

@@ -26,6 +26,7 @@ func TestOrderRepository_AddOrder(t *testing.T) {
 	timeMin := time.Now()
 	actualOrder, err := sut.AddOrder(expectedOrder)
 	timeMax := time.Now()
+	require.NoError(t, err)
 
 	expectedOrder.ID = 1 // because the table was truncated beforehand, we can guess the id
 

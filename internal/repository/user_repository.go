@@ -1,11 +1,9 @@
 package repository
 
 import (
-	"context"
 	"database/sql"
 	"github.com/smamykin/gofermart/internal/entity"
 	"github.com/smamykin/gofermart/internal/service"
-	"time"
 )
 
 func NewUserRepository(db *sql.DB) *UserRepository {
@@ -59,15 +57,4 @@ func (d *UserRepository) UpsertUser(login, pwd string) (user entity.User, err er
 	}
 
 	return user, err
-}
-
-func (d *UserRepository) Healthcheck(ctx context.Context) error {
-	ctx, cancel := context.WithTimeout(ctx, 1*time.Second)
-	defer cancel()
-
-	if err := d.db.PingContext(ctx); err != nil {
-		return err
-	}
-
-	return nil
 }
