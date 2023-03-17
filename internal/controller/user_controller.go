@@ -6,19 +6,22 @@ import (
 	"github.com/smamykin/gofermart/internal/service"
 	"github.com/smamykin/gofermart/pkg/contracts"
 	"github.com/smamykin/gofermart/pkg/token"
+	"io"
 	"net/http"
 	"time"
 )
 
 func NewUserController(
 	logger contracts.LoggerInterface,
-	userService service.UserService,
+	userService *service.UserService,
+	orderService *service.OrderService,
 	apiSecret []byte,
 	tokenLifespan time.Duration,
 ) *UserController {
 	return &UserController{
 		logger:        logger,
 		userService:   userService,
+		orderService:  orderService,
 		apiSecret:     apiSecret,
 		tokenLifespan: tokenLifespan,
 	}
@@ -26,7 +29,8 @@ func NewUserController(
 
 type UserController struct {
 	logger        contracts.LoggerInterface
-	userService   service.UserService
+	userService   *service.UserService
+	orderService  *service.OrderService
 	apiSecret     []byte
 	tokenLifespan time.Duration
 }
@@ -92,6 +96,37 @@ func (u *UserController) loginHandler(c *gin.Context) {
 }
 
 func (u *UserController) orderHandler(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"message": "success"})
+	currentUserIDAsAny, _ := c.Get("current_user_id")
+	currentUserID := currentUserIDAsAny.(int)
+	var body []byte
+	getBody, err := c.Request.GetBody()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "cannot get body"})
+		return
+	}
+	body, err = io.ReadAll(getBody)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "cannot read body"})
+		return
+	}
+	defer getBody.Close()
 
+	orderNumber := string(body)
+	if orderNumber == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "cannot fetch an order number from the  body"})
+		return
+	}
+	order, err := u.orderService.AddOrder(currentUserID, orderNumber)
+	if err != nil {
+		if err == service.ErrOrderAlreadyExists {
+			c.JSON(http.StatusBadRequest, gin.H{"message": "order already exists"})
+			return
+		}
+
+		u.logger.Err(err)
+		c.JSON(http.StatusServiceUnavailable, gin.H{"message": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, &order)
 }

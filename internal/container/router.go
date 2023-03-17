@@ -26,12 +26,13 @@ type controllerInterface interface {
 
 func jwtAuthMiddleware(apiSecret []byte) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		err := token.Valid(c, apiSecret)
+		userID, err := token.GetCurrentUserId(c, apiSecret)
 		if err != nil {
 			c.String(http.StatusUnauthorized, "Unauthorized")
 			c.Abort()
 			return
 		}
+		c.Set("current_user_id", userID)
 		c.Next()
 	}
 }

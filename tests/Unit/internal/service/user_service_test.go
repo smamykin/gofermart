@@ -56,8 +56,8 @@ func TestUserService_CreateNewUser(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			us := service.UserService{
-				Storage:       createStorageInterfaceMockForUpsertUser(ctrl, tt.expectedUser, tt.credentials, tt.upsertUserWillReturn),
-				HashGenerator: createHashGeneratorInterfaceMock(ctrl, true),
+				UserRepository: createStorageInterfaceMockForUpsertUser(ctrl, tt.expectedUser, tt.credentials, tt.upsertUserWillReturn),
+				HashGenerator:  createHashGeneratorInterfaceMock(ctrl, true),
 			}
 			actualUser, actualErr := us.CreateNewUser(tt.credentials)
 			require.Equal(t, tt.expectedErr, actualErr)
@@ -85,7 +85,7 @@ func TestUserService_GetUserIfPwdValid(t *testing.T) {
 	}
 	tests := map[string]testCase{
 		"general case":  {credentials, expectedUser, nil, nil, true},
-		"no user":       {credentials, entity.User{}, service.ErrUserIsNotFound, service.ErrUserIsNotFound, true},
+		"no user":       {credentials, entity.User{}, service.ErrEntityIsNotFound, service.ErrEntityIsNotFound, true},
 		"pwd not valid": {credentials, expectedUser, nil, service.ErrPwdIsNotValid, false},
 	}
 
@@ -93,8 +93,8 @@ func TestUserService_GetUserIfPwdValid(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			us := service.UserService{
-				Storage:       createStorageInterfaceMockForGetUserIfPwdValid(ctrl, expectedUser, tt.errorToReturn),
-				HashGenerator: createHashGeneratorInterfaceMock(ctrl, tt.IsEqualWillReturn),
+				UserRepository: createStorageInterfaceMockForGetUserIfPwdValid(ctrl, expectedUser, tt.errorToReturn),
+				HashGenerator:  createHashGeneratorInterfaceMock(ctrl, tt.IsEqualWillReturn),
 			}
 
 			actualUser, err := us.GetUserIfPwdValid(credentials)
@@ -113,8 +113,8 @@ func createHashGeneratorInterfaceMock(ctrl *gomock.Controller, IsEqualWillReturn
 	return m
 }
 
-func createStorageInterfaceMockForGetUserIfPwdValid(ctrl *gomock.Controller, user entity.User, errToReturn error) service.StorageInterface {
-	m := mock.NewMockStorageInterface(ctrl)
+func createStorageInterfaceMockForGetUserIfPwdValid(ctrl *gomock.Controller, user entity.User, errToReturn error) service.UserRepositoryInterface {
+	m := mock.NewMockUserRepositoryInterface(ctrl)
 	m.EXPECT().GetUserByLogin(gomock.Any()).DoAndReturn(func(login string) (u entity.User, err error) {
 		if errToReturn != nil {
 			return u, errToReturn
@@ -125,8 +125,8 @@ func createStorageInterfaceMockForGetUserIfPwdValid(ctrl *gomock.Controller, use
 	return m
 }
 
-func createStorageInterfaceMockForUpsertUser(ctrl *gomock.Controller, user entity.User, credentials service.Credentials, upsertUserWillReturn []error) service.StorageInterface {
-	m := mock.NewMockStorageInterface(ctrl)
+func createStorageInterfaceMockForUpsertUser(ctrl *gomock.Controller, user entity.User, credentials service.Credentials, upsertUserWillReturn []error) service.UserRepositoryInterface {
+	m := mock.NewMockUserRepositoryInterface(ctrl)
 	pwdHash, _ := hashFuncForTest(credentials.Pwd)
 	call := m.EXPECT().
 		UpsertUser(gomock.Eq(credentials.Login), gomock.Eq(pwdHash)).
@@ -140,7 +140,7 @@ func createStorageInterfaceMockForUpsertUser(ctrl *gomock.Controller, user entit
 			return user, nil
 		}
 
-		return u, service.ErrUserIsNotFound
+		return u, service.ErrEntityIsNotFound
 
 	}).AnyTimes()
 

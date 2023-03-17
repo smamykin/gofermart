@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -19,14 +20,18 @@ func Generate(userID int, apiSecret []byte, tokenLifespan time.Duration) (string
 	return token.SignedString(apiSecret)
 }
 
-func Valid(c *gin.Context, apiSecret []byte) error {
+func GetCurrentUserId(c *gin.Context, apiSecret []byte) (int, error) {
 	tokenString := ExtractToken(c.Request)
-	_, err := ParseString(tokenString, apiSecret)
-
+	tkn, err := ParseString(tokenString, apiSecret)
 	if err != nil {
-		return err
+		return 0, err
 	}
-	return nil
+	claims, _ := tkn.Claims.(jwt.MapClaims)
+	id, err := strconv.ParseInt(fmt.Sprintf("%.0f", claims["user_id"]), 10, 64)
+	if err != nil {
+		return 0, err
+	}
+	return int(id), nil
 }
 
 func ParseString(tokenString string, apiSecret []byte) (*jwt.Token, error) {

@@ -2,10 +2,12 @@ package router
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/smamykin/gofermart/internal/container"
+	"github.com/smamykin/gofermart/internal/entity"
 	"github.com/smamykin/gofermart/pkg/pwdhash"
 	"github.com/smamykin/gofermart/pkg/token"
 	"github.com/smamykin/gofermart/tests/Functional/utils"
@@ -59,6 +61,37 @@ func TestLogin(t *testing.T) {
 	require.Equal(t, 200, w.Code, w.Body.String())
 	require.Equal(t, `{"message":"success"}`, w.Body.String())
 	assertAuthorizationHeader(t, w, c)
+}
+
+func TestOrderPost(t *testing.T) {
+	c := utils.GetContainer(t)
+	utils.TruncateTable(t, c.DB())
+
+	pwd := "pancake"
+	login := "cheesecake"
+	addUserToDB(t, pwd, login, c.DB())
+
+	r := c.Router()
+	w := httptest.NewRecorder()
+	orderNumber := "12345678903"
+	req, _ := http.NewRequest("POST", "/api/user/orders", strings.NewReader(orderNumber))
+	userId := 1
+	authorize(t, userId, c, req)
+
+	r.ServeHTTP(w, req)
+
+	require.Equal(t, 200, w.Code, w.Body.String())
+	actualOrder := entity.Order{}
+	err := json.Unmarshal(w.Body.Bytes(), &actualOrder)
+	require.NoError(t, err)
+	require.Equal(t, actualOrder.OrderNumber, orderNumber)
+	require.Equal(t, actualOrder.UserID, userId)
+}
+
+func authorize(t *testing.T, userID int, c *container.Container, req *http.Request) {
+	tkn, err := token.Generate(userID, []byte(c.Config().APISecret), c.Config().TokenLifespan)
+	require.NoError(t, err)
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", tkn))
 }
 
 func assertAuthorizationHeader(t *testing.T, w *httptest.ResponseRecorder, c *container.Container) {

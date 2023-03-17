@@ -18,5 +18,5 @@ docker-build:
 docker-run:
 	docker run -it --rm gophermart-img
 mockgen: # generate mocks for project
-	mockgen -source ./internal/service/user_service.go -destination ./tests/mock/mock_service.go
+	mockgen -source ./internal/service/contracts.go -destination ./tests/mock/mock_service.go
 
