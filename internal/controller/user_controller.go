@@ -1,12 +1,12 @@
 package controller
 
 import (
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/smamykin/gofermart/internal/service"
 	"github.com/smamykin/gofermart/pkg/contracts"
 	"github.com/smamykin/gofermart/pkg/token"
-	"io"
 	"net/http"
 	"time"
 )
@@ -98,18 +98,15 @@ func (u *UserController) loginHandler(c *gin.Context) {
 
 func (u *UserController) orderHandler(c *gin.Context) {
 	currentUserID := getCurrentUserIDFromContext(c)
-	var body []byte
-	getBody, err := c.Request.GetBody()
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "cannot get body"})
-		return
+	if c.Request == nil {
+		u.logger.Err(errors.New("request is really nil"))
 	}
-	body, err = io.ReadAll(getBody)
+
+	body, err := c.GetRawData()
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "cannot read body"})
 		return
 	}
-	defer getBody.Close()
 
 	orderNumber := string(body)
 	if orderNumber == "" {
