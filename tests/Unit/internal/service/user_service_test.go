@@ -124,13 +124,13 @@ func TestUserService_GetBalance(t *testing.T) {
 
 func createWithdrawalRepositoryMock(ctrl *gomock.Controller, userID int, willReturnSum float64, willReturnErr error) service.WithdrawalRepositoryInterface {
 	m := mock.NewMockWithdrawalRepositoryInterface(ctrl)
-	m.EXPECT().GetAmountSumByUserId(gomock.Eq(userID)).Return(willReturnSum, willReturnErr).AnyTimes()
+	m.EXPECT().GetAmountSumByUserID(gomock.Eq(userID)).Return(willReturnSum, willReturnErr).AnyTimes()
 	return m
 }
 
 func createOrderRepositoryMock(ctrl *gomock.Controller, userID int, willReturnSum float64, willReturnErr error) service.OrderRepositoryInterface {
 	m := mock.NewMockOrderRepositoryInterface(ctrl)
-	m.EXPECT().GetAccrualSumByUserId(gomock.Eq(userID)).Return(willReturnSum, willReturnErr).AnyTimes()
+	m.EXPECT().GetAccrualSumByUserID(gomock.Eq(userID)).Return(willReturnSum, willReturnErr).AnyTimes()
 	return m
 }
 

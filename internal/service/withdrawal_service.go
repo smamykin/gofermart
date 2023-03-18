@@ -4,6 +4,6 @@ type WithdrawalService struct {
 	WithdrawalRepository WithdrawalRepositoryInterface
 }
 
-func (w *WithdrawalService) AddWithdrawal() {
+func (w *WithdrawalService) Withdraw(userID int) {
 
 }
