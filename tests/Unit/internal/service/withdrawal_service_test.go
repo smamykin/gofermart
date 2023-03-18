@@ -123,17 +123,16 @@ func getWithdrawalRepositoryMock(
 	withdrawal entity.Withdrawal,
 	getWithdrawalWillReturnErr error,
 	addWithdrawalWillReturnError error,
-	getAmountSumByUserIdWillReturn float64,
+	getAmountSumByUserIDWillReturn float64,
 ) service.WithdrawalRepositoryInterface {
 	ctrl := gomock.NewController(t)
 	m := mock.NewMockWithdrawalRepositoryInterface(ctrl)
 
-	call := m.EXPECT().AddWithdrawal(gomock.Eq(withdrawal)).AnyTimes().Return(withdrawal, addWithdrawalWillReturnError)
+	m.EXPECT().AddWithdrawal(gomock.Eq(withdrawal)).AnyTimes().Return(withdrawal, addWithdrawalWillReturnError)
 
-	call = m.EXPECT().GetWithdrawalByOrderNumber(gomock.Eq(withdrawal.OrderNumber)).AnyTimes()
-	call.Return(withdrawal, getWithdrawalWillReturnErr)
+	m.EXPECT().GetWithdrawalByOrderNumber(gomock.Eq(withdrawal.OrderNumber)).AnyTimes().Return(withdrawal, getWithdrawalWillReturnErr)
 
-	m.EXPECT().GetAmountSumByUserID(gomock.Eq(withdrawal.UserID)).AnyTimes().Return(getAmountSumByUserIdWillReturn, nil)
+	m.EXPECT().GetAmountSumByUserID(gomock.Eq(withdrawal.UserID)).AnyTimes().Return(getAmountSumByUserIDWillReturn, nil)
 
 	return m
 }
@@ -141,12 +140,12 @@ func getWithdrawalRepositoryMock(
 func getOrderRepositoryMockForWithdraw(
 	t *testing.T,
 	userID int,
-	getAmountSumByUserIdWillReturn float64,
+	getAmountSumByUserIDWillReturn float64,
 ) service.OrderRepositoryInterface {
 	ctrl := gomock.NewController(t)
 	m := mock.NewMockOrderRepositoryInterface(ctrl)
 
-	m.EXPECT().GetAccrualSumByUserID(gomock.Eq(userID)).AnyTimes().Return(getAmountSumByUserIdWillReturn, nil)
+	m.EXPECT().GetAccrualSumByUserID(gomock.Eq(userID)).AnyTimes().Return(getAmountSumByUserIDWillReturn, nil)
 
 	return m
 }
