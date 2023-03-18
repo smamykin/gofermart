@@ -4,8 +4,8 @@ import "time"
 
 type Status int
 
-func (s *Status) String() string {
-	switch *s {
+func (s Status) String() string {
+	switch s {
 	case OrderStatusNew:
 		return "NEW"
 	case OrderStatusProcessing:
@@ -34,10 +34,11 @@ const (
 	AccrualStatusInvalid
 	AccrualStatusProcessing
 	AccrualStatusProcessed
+	AccrualStatusUnregistered
 )
 
-func (s *AccrualStatus) String() string {
-	switch *s {
+func (s AccrualStatus) String() string {
+	switch s {
 	case AccrualStatusUndefined:
 		return "UNDEFINED"
 	case AccrualStatusRegistered:
@@ -48,6 +49,8 @@ func (s *AccrualStatus) String() string {
 		return "PROCESSING"
 	case AccrualStatusProcessed:
 		return "PROCESSED"
+	case AccrualStatusUnregistered:
+		return "UNREGISTERED"
 	default:
 		panic("unknown status")
 	}
@@ -59,6 +62,6 @@ type Order struct {
 	OrderNumber   string
 	Status        Status
 	AccrualStatus AccrualStatus
-	Accrual       int
+	Accrual       float64
 	CreatedAt     time.Time
 }

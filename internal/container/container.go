@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
+	"github.com/smamykin/gofermart/internal/client"
 	"github.com/smamykin/gofermart/internal/config"
 	"github.com/smamykin/gofermart/internal/controller"
 	"github.com/smamykin/gofermart/internal/repository"
@@ -38,17 +39,21 @@ func NewContainer(zLogger *zerolog.Logger) (c *Container, err error) {
 	c.userRepository = repository.NewUserRepository(c.DB())
 	c.orderRepository = repository.NewOrderRepository(c.DB())
 	APISecret := []byte(c.Config().APISecret)
+	c.logger = &logger.ZeroLogAdapter{Logger: zLogger}
+	c.orderService = &service.OrderService{
+		OrderRepository: c.OrderRepository(),
+		AccrualClient:   client.NewAccrualClient(c.Config().AccrualEntrypoint),
+		Logger:          c.logger,
+	}
 	c.controllers = []controllerInterface{
 		controller.NewHealthcheckController(repository.CreateHealthcheckFunc(c.DB())),
 		controller.NewUserController(
-			&logger.ZeroLogAdapter{Logger: zLogger},
+			c.logger,
 			&service.UserService{
 				UserRepository: c.UserRepository(),
 				HashGenerator:  &pwdhash.HashGenerator{},
 			},
-			&service.OrderService{
-				OrderRepository: c.OrderRepository(),
-			},
+			c.OrderService(),
 			APISecret,
 			c.Config().TokenLifespan,
 		),
@@ -67,6 +72,8 @@ type Container struct {
 	router          *gin.Engine
 	userRepository  *repository.UserRepository
 	orderRepository *repository.OrderRepository
+	orderService    *service.OrderService
+	logger          *logger.ZeroLogAdapter
 }
 
 func (c *Container) Controllers() []controllerInterface {
@@ -91,6 +98,10 @@ func (c *Container) UserRepository() service.UserRepositoryInterface {
 
 func (c *Container) OrderRepository() service.OrderRepositoryInterface {
 	return c.orderRepository
+}
+
+func (c *Container) OrderService() *service.OrderService {
+	return c.orderService
 }
 
 func (c *Container) IsOpen() bool {
@@ -138,7 +149,7 @@ func ensureSchemaExists(db *sql.DB) error {
 		    "order_number" VARCHAR NOT NULL,
 		    "status" INTEGER NOT NULL,
 		    "accrual_status" INTEGER NOT NULL,
-		    "accrual" INTEGER NOT NULL,
+		    "accrual" DOUBLE PRECISION NOT NULL,
 		    "created_at" TIMESTAMP NOT NULL,
 			CONSTRAINT fk_order_user
 			    FOREIGN KEY(user_id) 

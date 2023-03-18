@@ -3,10 +3,13 @@ package service
 import (
 	"github.com/ShiraazMoollatjie/goluhn"
 	"github.com/smamykin/gofermart/internal/entity"
+	"github.com/smamykin/gofermart/pkg/contracts"
 )
 
 type OrderService struct {
 	OrderRepository OrderRepositoryInterface
+	AccrualClient   AccrualClientInterface
+	Logger          contracts.LoggerInterface
 }
 
 func (o *OrderService) AddOrder(userID int, orderNumber string) (order entity.Order, err error) {
@@ -39,6 +42,44 @@ func (o *OrderService) AddOrder(userID int, orderNumber string) (order entity.Or
 	}
 
 	return order, nil
+}
+func (o *OrderService) UpdateOrdersStatuses() error {
+	orders, err := o.OrderRepository.GetOrdersWithUnfinishedStatus()
+	if err != nil {
+		return err
+	}
+	for _, order := range orders {
+		accrualOrder, err := o.AccrualClient.GetOrder(order.OrderNumber)
+		if err != nil {
+			o.Logger.Err(err)
+			continue
+		}
+
+		switch accrualOrder.Status {
+		case entity.AccrualStatusRegistered:
+			fallthrough
+		case entity.AccrualStatusProcessing:
+			order.Status = entity.OrderStatusProcessing
+		case entity.AccrualStatusInvalid:
+			order.Status = entity.OrderStatusInvalid
+		case entity.AccrualStatusProcessed:
+			order.Status = entity.OrderStatusProcessed
+		case entity.AccrualStatusUnregistered:
+			order.Status = entity.OrderStatusInvalid
+		default:
+			panic("unknown status")
+		}
+
+		order.AccrualStatus = accrualOrder.Status
+		order.Accrual = accrualOrder.Accrual
+
+		_, err = o.OrderRepository.UpdateOrder(order)
+		if err != nil {
+			o.Logger.Err(err)
+		}
+	}
+
+	return nil
 }
 
 func (o *OrderService) GetAllOrdersByUserID(userID int) (orders []entity.Order, err error) {

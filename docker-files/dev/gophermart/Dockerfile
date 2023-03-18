@@ -30,6 +30,7 @@ COPY ./pkg ./pkg
 COPY ./Makefile ./Makefile
 COPY ./build ./build
 
+RUN make build-binary
 
 RUN chown $USER:$GROUP . /tmp
 
@@ -39,10 +40,8 @@ EXPOSE 8080
 
 CMD [ "go", "run", "./cmd/gophermart/main.go"]
 
-FROM dev as prod
+FROM alpine:3.17 as prod
 
-RUN make build-binary
-
-COPY --from=dev ./build/gophermart /gephermart
+COPY --from=dev /app/build/gophermart /gophermart
 
 CMD [ "/gophermart" ]

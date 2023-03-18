@@ -81,6 +81,60 @@ func (o *OrderRepository) GetAllByUserID(userID int) ([]entity.Order, error) {
 	return hydrateOrders(rows)
 }
 
+func (o *OrderRepository) UpdateOrder(order entity.Order) (entity.Order, error) {
+	order.CreatedAt = time.Now().UTC().Truncate(time.Second)
+	result, err := o.db.Exec(
+		`
+			UPDATE "order"
+			SET status = $1,
+			    accrual_status = $2,
+			    accrual = $3,
+				user_id = $4
+			WHERE order_number = $5
+		`,
+		//set
+		order.Status,
+		order.AccrualStatus,
+		order.Accrual,
+		order.UserID,
+		//where
+		order.OrderNumber,
+	)
+
+	if err != nil {
+		return order, err
+	}
+
+	affected, err := result.RowsAffected()
+	if err != nil {
+		return order, err
+	}
+
+	if affected == 0 {
+		return order, service.ErrEntityIsNotFound
+	}
+
+	return order, nil
+}
+
+func (o *OrderRepository) GetOrdersWithUnfinishedStatus() ([]entity.Order, error) {
+	rows, err := o.db.Query(
+		`
+			SELECT id, user_id, order_number, status, accrual_status, accrual, created_at
+			FROM "order"
+			WHERE status in ($1, $2)
+		`,
+		entity.OrderStatusNew,
+		entity.OrderStatusProcessing,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	return hydrateOrders(rows)
+}
+
 func hydrateOrder(row *sql.Row) (order entity.Order, err error) {
 	if row.Err() != nil {
 		return order, row.Err()

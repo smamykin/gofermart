@@ -93,6 +93,65 @@ func TestOrderRepository_GetAllByUserID(t *testing.T) {
 	require.Equal(t, err, nil)
 }
 
+func TestOrderRepository_GetOrdersWithUnfinishedStatus(t *testing.T) {
+	c := utils.GetContainer(t)
+	db := c.DB()
+	utils.TruncateTable(t, db)
+
+	sut := c.OrderRepository()
+	//first check if there is no orders
+	actualOrders, err := sut.GetOrdersWithUnfinishedStatus()
+	require.NoError(t, err)
+
+	require.Equal(t, []entity.Order{}, actualOrders)
+
+	//second check if there are orders
+	user := utils.InsertUser(t, db, entity.User{})
+	order0, err := c.OrderRepository().AddOrder(entity.Order{
+		UserID:      user.ID,
+		OrderNumber: "123",
+	})
+	require.NoError(t, err)
+	order1, err := c.OrderRepository().AddOrder(entity.Order{
+		UserID:      user.ID,
+		OrderNumber: "321",
+	})
+	require.NoError(t, err)
+
+	actualOrders, err = sut.GetOrdersWithUnfinishedStatus()
+	require.NoError(t, err)
+
+	require.Equal(t, []entity.Order{order0, order1}, actualOrders)
+}
+
+func TestOrderRepository_UpdateOrder(t *testing.T) {
+	c := utils.GetContainer(t)
+	db := c.DB()
+	utils.TruncateTable(t, db)
+
+	sut := c.OrderRepository()
+	user := utils.InsertUser(t, db, entity.User{})
+	order, err := c.OrderRepository().AddOrder(entity.Order{
+		UserID:      user.ID,
+		OrderNumber: "123",
+	})
+	require.NoError(t, err)
+
+	//first check if there are orders
+	actualOrders, err := sut.UpdateOrder(order)
+	require.NoError(t, err)
+
+	require.Equal(t, order, actualOrders)
+
+	//second check if there is no orders
+	_, err = sut.UpdateOrder(entity.Order{
+		UserID:      user.ID,
+		OrderNumber: "99999",
+	})
+
+	require.Equal(t, err, service.ErrEntityIsNotFound)
+}
+
 func assertOrder(t *testing.T, expected entity.Order, actual entity.Order, createAtMin time.Time, createAtMax time.Time) {
 	require.WithinRange(t, actual.CreatedAt, createAtMin.Truncate(time.Second), createAtMax)
 	now := time.Time{}
