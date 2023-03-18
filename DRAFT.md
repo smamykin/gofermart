@@ -63,16 +63,23 @@ namespace Gofermart {
         status int
         accrualStatus: int
         accrual int
-        created_at datatime
+        created_at datetime
     }
-    entity "BalanceAction" as BA {
-        value uint
-        type int (enum: \n\
-        1 = пополнение на основе\n\
-        добавление заказа;\n\
-        2 = списание по инициативе\n\
-        пользователя.\n)
-        orderId int (default = 0 - нет заказа)
+'    entity "BalanceAction" as BA {
+'        value uint
+'        type int (enum: \n\
+'        1 = пополнение на основе\n\
+'        добавление заказа;\n\
+'        2 = списание по инициативе\n\
+'        пользователя.\n)
+'        orderId int (default = 0 - нет заказа)
+'    }
+    
+    entity "Withdrawal" as W {
+        id int
+        userId int
+        amount float
+        created_at datetime
     }
 }
 
@@ -85,8 +92,9 @@ namespace Accrual {
 }
 
 U "1" *-d- "many" O1 : create >
-U "1" *-d- "many" BA : read >
-O1 "1" -l- "1" BA : add >
+'U "1" *-d- "many" BA : read >
+'O1 "1" -l- "1" BA : add >
+U "1" *-d- "many" W : create >
 
 O1 "1"--"1" O2 : read >
 
@@ -98,67 +106,73 @@ O1 "1"--"1" O2 : read >
 ```puml
 @startuml
 
-namespace "Services" as S {
-    
-    class "OrderService" as OS  {
-        + createAndAddOrder()
-        + updateOrderStatuses()
-        + getOrder()
+package "Business" as BL {
+    package "Services" as BL.S{
+        class "OrderService" as BL.S.OS  {
+            + AddOrder()
+            + GetAllOrdersByUserID()
+            + UpdateOrdersStatuses()
+            + GetSumAccrualByUserID()
+        }
+        class "WithdrawalService" as BL.S.WS {
+            + AddWithdrawal()
+            + GetAllWithdrawalsByUserID()
+            + GetSumAmountByUserID()
+        }
+        class "UserService" as BL.S.US {
+            + CreateNewUser()
+            + GetUserIfPwdValid()
+            + GetBalance()
+        }
+        
+        package "Contract" as BL.S.C {
+            interface "OrderRepositoryInterface" as BL.S.C.ORI {}
+            interface "UserRepositoryInterface" as BL.S.C.URI {}
+            interface "WithdrawalRepositoryInterface" as BL.S.C.WRI {}
+            BL.S.C.URI -[hidden]d-> BL.S.C.WRI
+            BL.S.C.WRI -[hidden]-> BL.S.C.ORI
+         }
+         BL.S.US o-- BL.S.WS
+         BL.S.US o--- BL.S.OS
+         
+         BL.S.OS -ro  BL.S.C.ORI
+         BL.S.WS -ro  BL.S.C.WRI
+         BL.S.US -ro  BL.S.C.URI
+         
     }
-    class "BalanceService" as BS {
-        + updateBalanceByOrder()
-        + getBalance()
-        + updateBalanceByWithdrawing()
-        + getWithdrawingHistory()
+    package "Entities" as BL.E {
+'        class "User" as U {}
+'        class "Order" as O {}
+'        class "Withdrawal" as W {}
+'        U *-- O 
+'        note left on link : Заказ был\nдобавлен\nпользователем
+'        U *-- W 
+'        note left on link : Списание было\nдобавлено\nпользователем
     }
-    class "AuthService" as AS {
-        + login()
-        + register()
-    }
-    note bottom of AS 
-        скорее всего это 
-        возьмет на себя
-        фреймворк
-    end note
-     S.OS o--- S.BS
 }
-namespace "Entities" as E {
-    class "User" as U {}
-    class "Order" as O {}
-    class "Balance" as B {}
-    class "BalanceAction" as BA {}
-    E.U *-- E.B 
-    note left  on link : Пользователь\nимеет\nсчет-баланс
-    E.U *-- E.O 
-    note left on link : Заказ был\nдобавлен\nпользователем
-    E.B *-- E.BA 
-    note on link: Баланс формируется\n из действий с балансом
-    E.O o---  E.BA
-    note on link : Заказ может являться основанием\nна действие с балансом 
+class "UserController" as UC {
+    login()
+    register()
+    orderList()
+    addOrder()
+    balance()
+    withdraw()
+    withdrawalList()
 }
-namespace "Controllers" as C {
-    class "OrderController" as OC {}
-    class "BalanceController" as BC {}
-    class "UserController" as UC {}
-}
-namespace cmd {
-    class "UpdateOrderStatusesCommand" as UOSC
-    class "RunServerCommand" as RSC
-}
-E.U o- S.AS 
-E.O <- S.OS 
-note on link : creates \nand update
-E.O o- S.BS
-E.BA <- S.BS
-note on link : creates
 
-'C.UC o- S.AS 
-'C.OC o- S.OS 
-'C.BC o- S.BS 
-C o- S
+package "Repositories" as R {
+    class "OrderRepository" as R.OR {}
+    class "UserRepository" as R.UR {}
+    class "WithdrawalRepository" as R.WR {}
+    R.UR -[hidden]-> R.WR
+    R.WR -[hidden]-> R.OR
+}
 
-C ---o cmd.RSC
-S ---o cmd.UOSC
+BL.S -l-o UC
+BL.E o-- BL.S
+BL.S.C.ORI <|. R.OR 
+BL.S.C.URI <|. R.UR 
+BL.S.C.WRI <|. R.WR 
 
 @enduml
 ```
@@ -175,5 +189,3 @@ REGISTERED — заказ зарегистрирован, но не начисл
 INVALID — заказ не принят к расчёту, и вознаграждение не будет начислено;
 PROCESSING — расчёт начисления в процессе;
 PROCESSED — расчёт начисления окончен;
-
-{5577006791947779410 0 11 PROCESSING PROCESSING 0 0001-01-01 00:00:00 +0000 UTC} (entity.Order)

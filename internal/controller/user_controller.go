@@ -37,7 +37,7 @@ type UserController struct {
 func (u *UserController) SetupRoutes(public *gin.RouterGroup, protected *gin.RouterGroup) {
 	public.POST("/api/user/register", u.registerHandler)
 	public.POST("/api/user/login", u.loginHandler)
-	protected.POST("/api/user/orders", u.orderHandler)
+	protected.POST("/api/user/orders", u.addOrderHandler)
 	protected.GET("/api/user/orders", u.orderListHandler)
 }
 
@@ -95,7 +95,7 @@ func (u *UserController) loginHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "success"})
 }
 
-func (u *UserController) orderHandler(c *gin.Context) {
+func (u *UserController) addOrderHandler(c *gin.Context) {
 	currentUserID := getCurrentUserIDFromContext(c)
 	body, err := c.GetRawData()
 	if err != nil {
