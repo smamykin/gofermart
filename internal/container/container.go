@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
+	"github.com/smamykin/gofermart/internal/client"
 	"github.com/smamykin/gofermart/internal/config"
 	"github.com/smamykin/gofermart/internal/controller"
 	"github.com/smamykin/gofermart/internal/repository"
@@ -48,6 +49,7 @@ func NewContainer(zLogger *zerolog.Logger) (c *Container, err error) {
 			},
 			&service.OrderService{
 				OrderRepository: c.OrderRepository(),
+				AccrualClient:   client.NewAccrualClient(c.Config().AccrualEntrypoint),
 			},
 			APISecret,
 			c.Config().TokenLifespan,

@@ -15,9 +15,9 @@ func NewConfigFromEnv() (Config, error) {
 }
 
 type Config struct {
-	Dsn              string        `env:"DATABASE_URI,notEmpty" envDefault:"postgres://postgres:postgres@localhost:54323/postgres"`
-	APISecret        string        `env:"API_SECRET,notEmpty" envDefault:"secret"`
-	TokenLifespan    time.Duration `env:"TOKEN_LIFESPAN,notEmpty" envDefault:"1h"`
-	ServerAddr       string        `env:"RUN_ADDRESS,notEmpty" envDefault:":8888"`
-	AccrualSystemUrl string        `env:"ACCRUAL_SYSTEM_ADDRESS" envDefault:"http://localhost:8080"`
+	Dsn               string        `env:"DATABASE_URI,notEmpty" envDefault:"postgres://postgres:postgres@localhost:54323/postgres"`
+	APISecret         string        `env:"API_SECRET,notEmpty" envDefault:"secret"`
+	TokenLifespan     time.Duration `env:"TOKEN_LIFESPAN,notEmpty" envDefault:"1h"`
+	ServerAddr        string        `env:"RUN_ADDRESS,notEmpty" envDefault:":8888"`
+	AccrualEntrypoint string        `env:"ACCRUAL_SYSTEM_ADDRESS" envDefault:"http://localhost:8080"`
 }

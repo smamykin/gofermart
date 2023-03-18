@@ -87,6 +87,12 @@ func (o *OrderRepository) UpdateOrder(order entity.Order) (entity.Order, error) 
 	return order, nil
 }
 
+func (o *OrderRepository) GetOrdersWithUnfinishedStatus() ([]entity.Order, error) {
+	panic("implement me")
+
+	return nil, nil
+}
+
 func hydrateOrder(row *sql.Row) (order entity.Order, err error) {
 	if row.Err() != nil {
 		return order, row.Err()
