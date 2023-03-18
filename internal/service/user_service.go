@@ -58,11 +58,11 @@ func (u *UserService) GetUserIfPwdValid(credentials Credentials) (user entity.Us
 }
 
 func (u *UserService) GetBalance(userID int) (balance Balance, err error) {
-	withdrawalSum, err := u.WithdrawalRepository.GetAmountSumByUserId(userID)
+	withdrawalSum, err := u.WithdrawalRepository.GetAmountSumByUserID(userID)
 	if err != nil {
 		return balance, err
 	}
-	accrualSum, err := u.OrderRepository.GetAccrualSumByUserId(userID)
+	accrualSum, err := u.OrderRepository.GetAccrualSumByUserID(userID)
 	if err != nil {
 		return balance, err
 	}

@@ -46,7 +46,7 @@ func TestWithdrawalRepository_GetAmountSumByUserId(t *testing.T) {
 	sut := c.WithdrawalRepository()
 
 	//first check if there is no withdrawals at all
-	actualSum, err := sut.GetAmountSumByUserId(user.ID)
+	actualSum, err := sut.GetAmountSumByUserID(user.ID)
 	require.NoError(t, err)
 	require.Equal(t, .0, actualSum)
 
@@ -69,7 +69,7 @@ func TestWithdrawalRepository_GetAmountSumByUserId(t *testing.T) {
 
 	expectedSum := withdrawal0.Amount + withdrawal1.Amount
 
-	actualSum, err = sut.GetAmountSumByUserId(user.ID)
+	actualSum, err = sut.GetAmountSumByUserID(user.ID)
 	require.NoError(t, err)
 	require.Equal(t, expectedSum, actualSum)
 }

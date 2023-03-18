@@ -103,19 +103,19 @@ func (mr *MockOrderRepositoryInterfaceMockRecorder) AddOrder(o interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddOrder", reflect.TypeOf((*MockOrderRepositoryInterface)(nil).AddOrder), o)
 }
 
-// GetAccrualSumByUserId mocks base method.
-func (m *MockOrderRepositoryInterface) GetAccrualSumByUserId(userID int) (float64, error) {
+// GetAccrualSumByUserID mocks base method.
+func (m *MockOrderRepositoryInterface) GetAccrualSumByUserID(userID int) (float64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAccrualSumByUserId", userID)
+	ret := m.ctrl.Call(m, "GetAccrualSumByUserID", userID)
 	ret0, _ := ret[0].(float64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetAccrualSumByUserId indicates an expected call of GetAccrualSumByUserId.
-func (mr *MockOrderRepositoryInterfaceMockRecorder) GetAccrualSumByUserId(userID interface{}) *gomock.Call {
+// GetAccrualSumByUserID indicates an expected call of GetAccrualSumByUserID.
+func (mr *MockOrderRepositoryInterfaceMockRecorder) GetAccrualSumByUserID(userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccrualSumByUserId", reflect.TypeOf((*MockOrderRepositoryInterface)(nil).GetAccrualSumByUserId), userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccrualSumByUserID", reflect.TypeOf((*MockOrderRepositoryInterface)(nil).GetAccrualSumByUserID), userID)
 }
 
 // GetAllByUserID mocks base method.
@@ -231,19 +231,19 @@ func (mr *MockWithdrawalRepositoryInterfaceMockRecorder) AddWithdrawal(withdrawa
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddWithdrawal", reflect.TypeOf((*MockWithdrawalRepositoryInterface)(nil).AddWithdrawal), withdrawal)
 }
 
-// GetAmountSumByUserId mocks base method.
-func (m *MockWithdrawalRepositoryInterface) GetAmountSumByUserId(userID int) (float64, error) {
+// GetAmountSumByUserID mocks base method.
+func (m *MockWithdrawalRepositoryInterface) GetAmountSumByUserID(userID int) (float64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAmountSumByUserId", userID)
+	ret := m.ctrl.Call(m, "GetAmountSumByUserID", userID)
 	ret0, _ := ret[0].(float64)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// GetAmountSumByUserId indicates an expected call of GetAmountSumByUserId.
-func (mr *MockWithdrawalRepositoryInterfaceMockRecorder) GetAmountSumByUserId(userID interface{}) *gomock.Call {
+// GetAmountSumByUserID indicates an expected call of GetAmountSumByUserID.
+func (mr *MockWithdrawalRepositoryInterfaceMockRecorder) GetAmountSumByUserID(userID interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAmountSumByUserId", reflect.TypeOf((*MockWithdrawalRepositoryInterface)(nil).GetAmountSumByUserId), userID)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAmountSumByUserID", reflect.TypeOf((*MockWithdrawalRepositoryInterface)(nil).GetAmountSumByUserID), userID)
 }
 
 // GetWithdrawal mocks base method.

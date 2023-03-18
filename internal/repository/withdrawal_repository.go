@@ -25,7 +25,7 @@ func (w *WithdrawalRepository) GetWithdrawal(ID int) (order entity.Withdrawal, e
 	return hydrateWithdrawal(row)
 }
 
-func (w *WithdrawalRepository) GetAmountSumByUserId(userID int) (sum float64, err error) {
+func (w *WithdrawalRepository) GetAmountSumByUserID(userID int) (sum float64, err error) {
 	row := w.db.QueryRow(`
 		SELECT COALESCE(SUM(amount), 0.00)
 		FROM withdrawal

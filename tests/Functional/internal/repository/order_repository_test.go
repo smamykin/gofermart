@@ -163,7 +163,7 @@ func TestOrderRepository_GetAccrualSumByUserId(t *testing.T) {
 	sut := c.OrderRepository()
 
 	//first check if there is no withdrawals at all
-	actualSum, err := sut.GetAccrualSumByUserId(user.ID)
+	actualSum, err := sut.GetAccrualSumByUserID(user.ID)
 	require.NoError(t, err)
 	require.Equal(t, .0, actualSum)
 
@@ -190,7 +190,7 @@ func TestOrderRepository_GetAccrualSumByUserId(t *testing.T) {
 
 	expectedSum := order0.Accrual + order1.Accrual
 
-	actualSum, err = sut.GetAccrualSumByUserId(user.ID)
+	actualSum, err = sut.GetAccrualSumByUserID(user.ID)
 	require.NoError(t, err)
 	require.Equal(t, expectedSum, actualSum)
 }

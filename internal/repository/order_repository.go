@@ -135,7 +135,7 @@ func (o *OrderRepository) GetOrdersWithUnfinishedStatus() ([]entity.Order, error
 	return hydrateOrders(rows)
 }
 
-func (o *OrderRepository) GetAccrualSumByUserId(userID int) (sum float64, err error) {
+func (o *OrderRepository) GetAccrualSumByUserID(userID int) (sum float64, err error) {
 	row := o.db.QueryRow(`
 		SELECT COALESCE(SUM(accrual), 0.00)
 		FROM "order"
