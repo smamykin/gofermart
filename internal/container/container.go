@@ -39,6 +39,10 @@ func NewContainer(zLogger *zerolog.Logger) (c *Container, err error) {
 	c.userRepository = repository.NewUserRepository(c.DB())
 	c.orderRepository = repository.NewOrderRepository(c.DB())
 	APISecret := []byte(c.Config().APISecret)
+	c.orderService = &service.OrderService{
+		OrderRepository: c.OrderRepository(),
+		AccrualClient:   client.NewAccrualClient(c.Config().AccrualEntrypoint),
+	}
 	c.controllers = []controllerInterface{
 		controller.NewHealthcheckController(repository.CreateHealthcheckFunc(c.DB())),
 		controller.NewUserController(
@@ -47,10 +51,7 @@ func NewContainer(zLogger *zerolog.Logger) (c *Container, err error) {
 				UserRepository: c.UserRepository(),
 				HashGenerator:  &pwdhash.HashGenerator{},
 			},
-			&service.OrderService{
-				OrderRepository: c.OrderRepository(),
-				AccrualClient:   client.NewAccrualClient(c.Config().AccrualEntrypoint),
-			},
+			c.OrderService(),
 			APISecret,
 			c.Config().TokenLifespan,
 		),
@@ -69,6 +70,7 @@ type Container struct {
 	router          *gin.Engine
 	userRepository  *repository.UserRepository
 	orderRepository *repository.OrderRepository
+	orderService    *service.OrderService
 }
 
 func (c *Container) Controllers() []controllerInterface {
@@ -93,6 +95,10 @@ func (c *Container) UserRepository() service.UserRepositoryInterface {
 
 func (c *Container) OrderRepository() service.OrderRepositoryInterface {
 	return c.orderRepository
+}
+
+func (c *Container) OrderService() *service.OrderService {
+	return c.orderService
 }
 
 func (c *Container) IsOpen() bool {
