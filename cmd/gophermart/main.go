@@ -19,7 +19,10 @@ func main() {
 	}
 	defer c.Close()
 
+	logger.Info().Msgf("service started with configuration %#v", c.Config())
+
 	go utils.InvokeFunctionWithInterval(c.Config().UpdateStatusInterval, func() {
+		logger.Info().Msgf("update of statuses is started")
 		err := c.OrderService().UpdateOrdersStatuses()
 		if err != nil {
 			logger.Error().Err(err).Msgf("cannot update status")
