@@ -171,6 +171,7 @@ func ensureSchemaExists(db *sql.DB) error {
 		CREATE TABLE "withdrawal" (
 		    "id" SERIAL PRIMARY KEY,
 			"user_id" INTEGER NOT NULL,
+		    "order_number" VARCHAR NOT NULL,
 		    "amount" DOUBLE PRECISION NOT NULL,
 		    "created_at" TIMESTAMP NOT NULL,
 			CONSTRAINT fk_withdrawal_user
@@ -178,6 +179,7 @@ func ensureSchemaExists(db *sql.DB) error {
 			    REFERENCES "user"(id)
 		);
 
+		CREATE UNIQUE INDEX udx_withdrawal_number ON "order" (order_number);
 		CREATE INDEX idx_withdrawal_user_id ON "withdrawal" (user_id);
 	`)
 

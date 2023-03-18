@@ -17,7 +17,7 @@ type WithdrawalRepository struct {
 
 func (w *WithdrawalRepository) GetWithdrawal(ID int) (order entity.Withdrawal, err error) {
 	row := w.db.QueryRow(`
-		SELECT id, user_id, amount, created_at
+		SELECT id, user_id, order_number, amount, created_at
 		FROM "withdrawal"
 		WHERE id = $1
 	`, ID)
@@ -47,11 +47,12 @@ func (w *WithdrawalRepository) AddWithdrawal(withdrawal entity.Withdrawal) (enti
 	withdrawal.CreatedAt = time.Now().UTC().Truncate(time.Second)
 	row := w.db.QueryRow(
 		`
-			INSERT INTO "withdrawal" (user_id, amount, created_at)
-			VALUES ($1, $2, $3)
+			INSERT INTO "withdrawal" (user_id, order_number, amount,created_at)
+			VALUES ($1,$2,$3,$4)
 			RETURNING id
 		`,
 		withdrawal.UserID,
+		withdrawal.OrderNumber,
 		withdrawal.Amount,
 		withdrawal.CreatedAt,
 	)
@@ -70,7 +71,7 @@ func hydrateWithdrawal(row *sql.Row) (withdrawal entity.Withdrawal, err error) {
 		return withdrawal, row.Err()
 	}
 
-	err = row.Scan(&withdrawal.ID, &withdrawal.UserID, &withdrawal.Amount, &withdrawal.CreatedAt)
+	err = row.Scan(&withdrawal.ID, &withdrawal.UserID, &withdrawal.OrderNumber, &withdrawal.Amount, &withdrawal.CreatedAt)
 
 	if err == sql.ErrNoRows {
 		return withdrawal, service.ErrEntityIsNotFound

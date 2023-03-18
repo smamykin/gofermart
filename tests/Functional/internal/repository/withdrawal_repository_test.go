@@ -16,8 +16,9 @@ func TestWithdrawalRepository_AddWithdrawal(t *testing.T) {
 	user := utils.InsertUser(t, db, entity.User{})
 	sut := c.WithdrawalRepository()
 	expectedWithdrawal := entity.Withdrawal{
-		UserID: user.ID,
-		Amount: 33,
+		UserID:      user.ID,
+		OrderNumber: "123",
+		Amount:      33,
 	}
 	timeMin := time.Now()
 	actualWithdrawal, err := sut.AddWithdrawal(expectedWithdrawal)
@@ -52,18 +53,21 @@ func TestWithdrawalRepository_GetAmountSumByUserId(t *testing.T) {
 
 	//second check if there are withdrawals
 	withdrawal0, err := sut.AddWithdrawal(entity.Withdrawal{
-		UserID: user.ID,
-		Amount: 11.1,
+		UserID:      user.ID,
+		OrderNumber: "111",
+		Amount:      11.1,
 	})
 	require.NoError(t, err)
 	withdrawal1, err := sut.AddWithdrawal(entity.Withdrawal{
-		UserID: user.ID,
-		Amount: 22.2,
+		UserID:      user.ID,
+		OrderNumber: "222",
+		Amount:      22.2,
 	})
 	require.NoError(t, err)
 	_, err = sut.AddWithdrawal(entity.Withdrawal{
-		UserID: anotherUser.ID,
-		Amount: 33.3,
+		UserID:      anotherUser.ID,
+		OrderNumber: "333",
+		Amount:      33.3,
 	})
 	require.NoError(t, err)
 
