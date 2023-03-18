@@ -26,7 +26,7 @@ func (a *AccrualClient) GetOrder(orderNumber string) (service.AccrualOrder, erro
 		SetHeader("Accept", "application/json").
 		SetPathParam("number", orderNumber).
 		SetResult(order).
-		Get(a.apiEntrypoint + "/api/orders")
+		Get(a.apiEntrypoint + "/api/orders/{number}")
 	if err != nil {
 		return service.AccrualOrder{}, err
 	}

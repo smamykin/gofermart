@@ -144,7 +144,7 @@ func TestOrderRepository_UpdateOrder(t *testing.T) {
 	require.Equal(t, order, actualOrders)
 
 	//second check if there is no orders
-	actualOrders, err = sut.UpdateOrder(entity.Order{
+	_, err = sut.UpdateOrder(entity.Order{
 		UserID:      user.ID,
 		OrderNumber: "99999",
 	})

@@ -39,14 +39,16 @@ func NewContainer(zLogger *zerolog.Logger) (c *Container, err error) {
 	c.userRepository = repository.NewUserRepository(c.DB())
 	c.orderRepository = repository.NewOrderRepository(c.DB())
 	APISecret := []byte(c.Config().APISecret)
+	c.logger = &logger.ZeroLogAdapter{Logger: zLogger}
 	c.orderService = &service.OrderService{
 		OrderRepository: c.OrderRepository(),
 		AccrualClient:   client.NewAccrualClient(c.Config().AccrualEntrypoint),
+		Logger:          c.logger,
 	}
 	c.controllers = []controllerInterface{
 		controller.NewHealthcheckController(repository.CreateHealthcheckFunc(c.DB())),
 		controller.NewUserController(
-			&logger.ZeroLogAdapter{Logger: zLogger},
+			c.logger,
 			&service.UserService{
 				UserRepository: c.UserRepository(),
 				HashGenerator:  &pwdhash.HashGenerator{},
@@ -71,6 +73,7 @@ type Container struct {
 	userRepository  *repository.UserRepository
 	orderRepository *repository.OrderRepository
 	orderService    *service.OrderService
+	logger          *logger.ZeroLogAdapter
 }
 
 func (c *Container) Controllers() []controllerInterface {
