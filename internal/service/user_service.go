@@ -5,8 +5,10 @@ import (
 )
 
 type UserService struct {
-	UserRepository UserRepositoryInterface
-	HashGenerator  HashGeneratorInterface
+	UserRepository       UserRepositoryInterface
+	HashGenerator        HashGeneratorInterface
+	OrderRepository      OrderRepositoryInterface
+	WithdrawalRepository WithdrawalRepositoryInterface
 }
 
 func (u *UserService) CreateNewUser(credentials Credentials) (user entity.User, err error) {
@@ -53,4 +55,20 @@ func (u *UserService) GetUserIfPwdValid(credentials Credentials) (user entity.Us
 	}
 
 	return user, nil
+}
+
+func (u *UserService) GetBalance(userID int) (balance Balance, err error) {
+	withdrawalSum, err := u.WithdrawalRepository.GetAmountSumByUserID(userID)
+	if err != nil {
+		return balance, err
+	}
+	accrualSum, err := u.OrderRepository.GetAccrualSumByUserID(userID)
+	if err != nil {
+		return balance, err
+	}
+
+	return Balance{
+		Current:   accrualSum - withdrawalSum,
+		Withdrawn: withdrawalSum,
+	}, err
 }

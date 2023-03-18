@@ -129,6 +129,36 @@ func TestOrderList(t *testing.T) {
 	}, actualResponse)
 }
 
+func TestBalance(t *testing.T) {
+	c := utils.GetContainer(t)
+	utils.TruncateTable(t, c.DB())
+
+	user := utils.InsertUser(t, c.DB(), entity.User{})
+	_, err := c.OrderRepository().AddOrder(entity.Order{
+		UserID:        user.ID,
+		OrderNumber:   "123",
+		Status:        entity.OrderStatusProcessed,
+		AccrualStatus: entity.AccrualStatusProcessed,
+		Accrual:       442.5,
+	})
+	require.NoError(t, err)
+	_, err = c.WithdrawalRepository().AddWithdrawal(entity.Withdrawal{
+		UserID: user.ID,
+		Amount: 42.3,
+	})
+	require.NoError(t, err)
+
+	r := c.Router()
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/api/user/balance", nil)
+	authorize(t, user.ID, c, req)
+
+	r.ServeHTTP(w, req)
+
+	require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+	require.Equal(t, `{"current":400.2,"withdrawn":42.3}`, w.Body.String())
+}
+
 func authorize(t *testing.T, userID int, c *container.Container, req *http.Request) {
 	tkn, err := token.Generate(userID, []byte(c.Config().APISecret), c.Config().TokenLifespan)
 	require.NoError(t, err)

@@ -103,6 +103,21 @@ func (mr *MockOrderRepositoryInterfaceMockRecorder) AddOrder(o interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddOrder", reflect.TypeOf((*MockOrderRepositoryInterface)(nil).AddOrder), o)
 }
 
+// GetAccrualSumByUserID mocks base method.
+func (m *MockOrderRepositoryInterface) GetAccrualSumByUserID(userID int) (float64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAccrualSumByUserID", userID)
+	ret0, _ := ret[0].(float64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAccrualSumByUserID indicates an expected call of GetAccrualSumByUserID.
+func (mr *MockOrderRepositoryInterfaceMockRecorder) GetAccrualSumByUserID(userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAccrualSumByUserID", reflect.TypeOf((*MockOrderRepositoryInterface)(nil).GetAccrualSumByUserID), userID)
+}
+
 // GetAllByUserID mocks base method.
 func (m *MockOrderRepositoryInterface) GetAllByUserID(userID int) ([]entity.Order, error) {
 	m.ctrl.T.Helper()
@@ -176,6 +191,74 @@ func (m *MockOrderRepositoryInterface) UpdateOrder(order entity.Order) (entity.O
 func (mr *MockOrderRepositoryInterfaceMockRecorder) UpdateOrder(order interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateOrder", reflect.TypeOf((*MockOrderRepositoryInterface)(nil).UpdateOrder), order)
+}
+
+// MockWithdrawalRepositoryInterface is a mock of WithdrawalRepositoryInterface interface.
+type MockWithdrawalRepositoryInterface struct {
+	ctrl     *gomock.Controller
+	recorder *MockWithdrawalRepositoryInterfaceMockRecorder
+}
+
+// MockWithdrawalRepositoryInterfaceMockRecorder is the mock recorder for MockWithdrawalRepositoryInterface.
+type MockWithdrawalRepositoryInterfaceMockRecorder struct {
+	mock *MockWithdrawalRepositoryInterface
+}
+
+// NewMockWithdrawalRepositoryInterface creates a new mock instance.
+func NewMockWithdrawalRepositoryInterface(ctrl *gomock.Controller) *MockWithdrawalRepositoryInterface {
+	mock := &MockWithdrawalRepositoryInterface{ctrl: ctrl}
+	mock.recorder = &MockWithdrawalRepositoryInterfaceMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use.
+func (m *MockWithdrawalRepositoryInterface) EXPECT() *MockWithdrawalRepositoryInterfaceMockRecorder {
+	return m.recorder
+}
+
+// AddWithdrawal mocks base method.
+func (m *MockWithdrawalRepositoryInterface) AddWithdrawal(withdrawal entity.Withdrawal) (entity.Withdrawal, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "AddWithdrawal", withdrawal)
+	ret0, _ := ret[0].(entity.Withdrawal)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AddWithdrawal indicates an expected call of AddWithdrawal.
+func (mr *MockWithdrawalRepositoryInterfaceMockRecorder) AddWithdrawal(withdrawal interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddWithdrawal", reflect.TypeOf((*MockWithdrawalRepositoryInterface)(nil).AddWithdrawal), withdrawal)
+}
+
+// GetAmountSumByUserID mocks base method.
+func (m *MockWithdrawalRepositoryInterface) GetAmountSumByUserID(userID int) (float64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAmountSumByUserID", userID)
+	ret0, _ := ret[0].(float64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAmountSumByUserID indicates an expected call of GetAmountSumByUserID.
+func (mr *MockWithdrawalRepositoryInterfaceMockRecorder) GetAmountSumByUserID(userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAmountSumByUserID", reflect.TypeOf((*MockWithdrawalRepositoryInterface)(nil).GetAmountSumByUserID), userID)
+}
+
+// GetWithdrawal mocks base method.
+func (m *MockWithdrawalRepositoryInterface) GetWithdrawal(ID int) (entity.Withdrawal, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetWithdrawal", ID)
+	ret0, _ := ret[0].(entity.Withdrawal)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetWithdrawal indicates an expected call of GetWithdrawal.
+func (mr *MockWithdrawalRepositoryInterfaceMockRecorder) GetWithdrawal(ID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWithdrawal", reflect.TypeOf((*MockWithdrawalRepositoryInterface)(nil).GetWithdrawal), ID)
 }
 
 // MockAccrualClientInterface is a mock of AccrualClientInterface interface.

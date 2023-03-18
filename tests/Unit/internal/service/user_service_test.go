@@ -104,6 +104,36 @@ func TestUserService_GetUserIfPwdValid(t *testing.T) {
 	}
 }
 
+func TestUserService_GetBalance(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	userID := rand.Int()
+	accrualSum := 50.5
+	withdrawalSum := 25.3
+	expectedBalance := service.Balance{
+		Current:   accrualSum - withdrawalSum,
+		Withdrawn: withdrawalSum,
+	}
+	us := service.UserService{
+		OrderRepository:      createOrderRepositoryMock(ctrl, userID, accrualSum, nil),
+		WithdrawalRepository: createWithdrawalRepositoryMock(ctrl, userID, withdrawalSum, nil),
+	}
+	actualBalance, err := us.GetBalance(userID)
+	require.NoError(t, err)
+	require.Equal(t, expectedBalance, actualBalance)
+}
+
+func createWithdrawalRepositoryMock(ctrl *gomock.Controller, userID int, willReturnSum float64, willReturnErr error) service.WithdrawalRepositoryInterface {
+	m := mock.NewMockWithdrawalRepositoryInterface(ctrl)
+	m.EXPECT().GetAmountSumByUserID(gomock.Eq(userID)).Return(willReturnSum, willReturnErr).AnyTimes()
+	return m
+}
+
+func createOrderRepositoryMock(ctrl *gomock.Controller, userID int, willReturnSum float64, willReturnErr error) service.OrderRepositoryInterface {
+	m := mock.NewMockOrderRepositoryInterface(ctrl)
+	m.EXPECT().GetAccrualSumByUserID(gomock.Eq(userID)).Return(willReturnSum, willReturnErr).AnyTimes()
+	return m
+}
+
 func createHashGeneratorInterfaceMock(ctrl *gomock.Controller, IsEqualWillReturn bool) service.HashGeneratorInterface {
 	m := mock.NewMockHashGeneratorInterface(ctrl)
 	m.EXPECT().Generate(gomock.Any()).DoAndReturn(hashFuncForTest).AnyTimes()

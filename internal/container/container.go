@@ -38,6 +38,7 @@ func NewContainer(zLogger *zerolog.Logger) (c *Container, err error) {
 	c.db = db
 	c.userRepository = repository.NewUserRepository(c.DB())
 	c.orderRepository = repository.NewOrderRepository(c.DB())
+	c.withdrawalRepository = repository.NewWithdrawalRepository(c.DB())
 	APISecret := []byte(c.Config().APISecret)
 	c.logger = &logger.ZeroLogAdapter{Logger: zLogger}
 	c.orderService = &service.OrderService{
@@ -50,8 +51,10 @@ func NewContainer(zLogger *zerolog.Logger) (c *Container, err error) {
 		controller.NewUserController(
 			c.logger,
 			&service.UserService{
-				UserRepository: c.UserRepository(),
-				HashGenerator:  &pwdhash.HashGenerator{},
+				UserRepository:       c.UserRepository(),
+				OrderRepository:      c.OrderRepository(),
+				WithdrawalRepository: c.WithdrawalRepository(),
+				HashGenerator:        &pwdhash.HashGenerator{},
 			},
 			c.OrderService(),
 			APISecret,
@@ -65,15 +68,16 @@ func NewContainer(zLogger *zerolog.Logger) (c *Container, err error) {
 }
 
 type Container struct {
-	isOpen          bool
-	config          config.Config
-	controllers     []controllerInterface
-	db              *sql.DB
-	router          *gin.Engine
-	userRepository  *repository.UserRepository
-	orderRepository *repository.OrderRepository
-	orderService    *service.OrderService
-	logger          *logger.ZeroLogAdapter
+	isOpen               bool
+	config               config.Config
+	controllers          []controllerInterface
+	db                   *sql.DB
+	router               *gin.Engine
+	userRepository       *repository.UserRepository
+	orderRepository      *repository.OrderRepository
+	orderService         *service.OrderService
+	logger               *logger.ZeroLogAdapter
+	withdrawalRepository *repository.WithdrawalRepository
 }
 
 func (c *Container) Controllers() []controllerInterface {
@@ -98,6 +102,10 @@ func (c *Container) UserRepository() service.UserRepositoryInterface {
 
 func (c *Container) OrderRepository() service.OrderRepositoryInterface {
 	return c.orderRepository
+}
+
+func (c *Container) WithdrawalRepository() service.WithdrawalRepositoryInterface {
+	return c.withdrawalRepository
 }
 
 func (c *Container) OrderService() *service.OrderService {
@@ -157,7 +165,20 @@ func ensureSchemaExists(db *sql.DB) error {
 		);
 
 		CREATE UNIQUE INDEX udx_order_number ON "order" (order_number);
-		CREATE INDEX idx_user_id ON "order" (user_id);
+		CREATE INDEX idx_order_user_id ON "order" (user_id);
+
+		--- Withdrawal
+		CREATE TABLE "withdrawal" (
+		    "id" SERIAL PRIMARY KEY,
+			"user_id" INTEGER NOT NULL,
+		    "amount" DOUBLE PRECISION NOT NULL,
+		    "created_at" TIMESTAMP NOT NULL,
+			CONSTRAINT fk_withdrawal_user
+			    FOREIGN KEY(user_id) 
+			    REFERENCES "user"(id)
+		);
+
+		CREATE INDEX idx_withdrawal_user_id ON "withdrawal" (user_id);
 	`)
 
 	if err != nil {

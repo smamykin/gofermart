@@ -152,6 +152,49 @@ func TestOrderRepository_UpdateOrder(t *testing.T) {
 	require.Equal(t, err, service.ErrEntityIsNotFound)
 }
 
+func TestOrderRepository_GetAccrualSumByUserId(t *testing.T) {
+	c := utils.GetContainer(t)
+	db := c.DB()
+	utils.TruncateTable(t, db)
+
+	user := utils.InsertUser(t, db, entity.User{})
+	anotherUser := utils.InsertUser(t, db, entity.User{})
+
+	sut := c.OrderRepository()
+
+	//first check if there is no withdrawals at all
+	actualSum, err := sut.GetAccrualSumByUserID(user.ID)
+	require.NoError(t, err)
+	require.Equal(t, .0, actualSum)
+
+	//second check if there are withdrawals
+	order0, err := sut.AddOrder(entity.Order{
+		UserID:      user.ID,
+		OrderNumber: "111",
+		Accrual:     11.1,
+	})
+	require.NoError(t, err)
+	order1, err := sut.AddOrder(entity.Order{
+		UserID:      user.ID,
+		OrderNumber: "222",
+		Accrual:     22.2,
+	})
+	require.NoError(t, err)
+
+	_, err = sut.AddOrder(entity.Order{
+		UserID:      anotherUser.ID,
+		OrderNumber: "333",
+		Accrual:     33.3,
+	})
+	require.NoError(t, err)
+
+	expectedSum := order0.Accrual + order1.Accrual
+
+	actualSum, err = sut.GetAccrualSumByUserID(user.ID)
+	require.NoError(t, err)
+	require.Equal(t, expectedSum, actualSum)
+}
+
 func assertOrder(t *testing.T, expected entity.Order, actual entity.Order, createAtMin time.Time, createAtMax time.Time) {
 	require.WithinRange(t, actual.CreatedAt, createAtMin.Truncate(time.Second), createAtMax)
 	now := time.Time{}
