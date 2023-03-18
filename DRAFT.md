@@ -112,12 +112,10 @@ package "Business" as BL {
             + AddOrder()
             + GetAllOrdersByUserID()
             + UpdateOrdersStatuses()
-            + GetSumAccrualByUserID()
         }
         class "WithdrawalService" as BL.S.WS {
             + AddWithdrawal()
             + GetAllWithdrawalsByUserID()
-            + GetSumAmountByUserID()
         }
         class "UserService" as BL.S.US {
             + CreateNewUser()
@@ -129,15 +127,18 @@ package "Business" as BL {
             interface "OrderRepositoryInterface" as BL.S.C.ORI {}
             interface "UserRepositoryInterface" as BL.S.C.URI {}
             interface "WithdrawalRepositoryInterface" as BL.S.C.WRI {}
-            BL.S.C.URI -[hidden]d-> BL.S.C.WRI
-            BL.S.C.WRI -[hidden]-> BL.S.C.ORI
+            BL.S.C.WRI -[hidden]-> BL.S.C.URI
+            BL.S.C.URI -[hidden]-> BL.S.C.ORI
          }
-         BL.S.US o-- BL.S.WS
-         BL.S.US o--- BL.S.OS
+         BL.S.WS -[hidden]-> BL.S.US
+         BL.S.US -[hidden]-> BL.S.OS
          
-         BL.S.OS -ro  BL.S.C.ORI
-         BL.S.WS -ro  BL.S.C.WRI
-         BL.S.US -ro  BL.S.C.URI
+         BL.S.OS -o  BL.S.C.ORI
+         BL.S.WS -o  BL.S.C.WRI
+         
+         BL.S.US -lo  BL.S.C.URI
+         BL.S.US -lo  BL.S.C.ORI
+         BL.S.US -lo  BL.S.C.WRI
          
     }
     package "Entities" as BL.E {
@@ -164,8 +165,8 @@ package "Repositories" as R {
     class "OrderRepository" as R.OR {}
     class "UserRepository" as R.UR {}
     class "WithdrawalRepository" as R.WR {}
-    R.UR -[hidden]-> R.WR
-    R.WR -[hidden]-> R.OR
+    R.WR -[hidden]-> R.UR
+    R.UR -[hidden]-> R.OR
 }
 
 BL.S -l-o UC

@@ -135,6 +135,25 @@ func (o *OrderRepository) GetOrdersWithUnfinishedStatus() ([]entity.Order, error
 	return hydrateOrders(rows)
 }
 
+func (o *OrderRepository) GetAccrualSumByUserId(userID int) (sum float64, err error) {
+	row := o.db.QueryRow(`
+		SELECT COALESCE(SUM(accrual), 0.00)
+		FROM "order"
+		WHERE user_id = $1
+	`, userID)
+
+	if row.Err() != nil {
+		return 0, row.Err()
+	}
+
+	err = row.Scan(&sum)
+	if err != nil {
+		return 0, err
+	}
+
+	return sum, nil
+}
+
 func hydrateOrder(row *sql.Row) (order entity.Order, err error) {
 	if row.Err() != nil {
 		return order, row.Err()

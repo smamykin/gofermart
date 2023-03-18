@@ -39,6 +39,7 @@ func (u *UserController) SetupRoutes(public *gin.RouterGroup, protected *gin.Rou
 	public.POST("/api/user/login", u.loginHandler)
 	protected.POST("/api/user/orders", u.addOrderHandler)
 	protected.GET("/api/user/orders", u.orderListHandler)
+	protected.GET("/api/user/balance", u.balanceHandler)
 }
 
 func (u *UserController) registerHandler(c *gin.Context) {
@@ -159,9 +160,28 @@ func (u *UserController) orderListHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, orderResponseModels)
 }
 
+func (u *UserController) balanceHandler(c *gin.Context) {
+	userID := getCurrentUserIDFromContext(c)
+
+	balance, err := u.userService.GetBalance(userID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusServiceUnavailable, gin.H{"message": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, balance)
+}
+
 func getCurrentUserIDFromContext(c *gin.Context) int {
-	currentUserIDAsAny, _ := c.Get("current_user_id")
-	return currentUserIDAsAny.(int)
+	currentUserIDAsAny, ok := c.Get("current_user_id")
+	if !ok {
+		panic("cannot get current user id. check the endpoint is protected.")
+	}
+	if ID, ok := currentUserIDAsAny.(int); ok {
+		return ID
+	}
+
+	panic("cannot get current user id.")
 }
 
 type OrderResponseModel struct {

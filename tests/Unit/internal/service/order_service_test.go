@@ -175,6 +175,7 @@ func TestOrderService_UpdateOrdersStatuses(t *testing.T) {
 			Status:        entity.OrderStatusProcessed,
 			AccrualStatus: entity.AccrualStatusProcessed,
 			OrderNumber:   "444",
+			Accrual:       500,
 		},
 		{
 			ID:            55,

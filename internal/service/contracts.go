@@ -19,7 +19,15 @@ type OrderRepositoryInterface interface {
 	GetAllByUserID(userID int) ([]entity.Order, error)
 	UpdateOrder(order entity.Order) (entity.Order, error)
 	GetOrdersWithUnfinishedStatus() ([]entity.Order, error)
+	GetAccrualSumByUserId(userID int) (sum float64, err error)
 }
+
+type WithdrawalRepositoryInterface interface {
+	GetAmountSumByUserId(userID int) (sum float64, err error)
+	AddWithdrawal(withdrawal entity.Withdrawal) (entity.Withdrawal, error)
+	GetWithdrawal(ID int) (order entity.Withdrawal, err error)
+}
+
 type AccrualClientInterface interface {
 	GetOrder(orderNumber string) (AccrualOrder, error)
 }
@@ -51,6 +59,10 @@ type AccrualOrder struct {
 	Order   string
 	Status  entity.AccrualStatus
 	Accrual float64
+}
+type Balance struct {
+	Current   float64 `json:"current"`
+	Withdrawn float64 `json:"withdrawn"`
 }
 
 //endregion DTO
