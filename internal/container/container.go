@@ -149,7 +149,7 @@ func ensureSchemaExists(db *sql.DB) error {
 		    "order_number" VARCHAR NOT NULL,
 		    "status" INTEGER NOT NULL,
 		    "accrual_status" INTEGER NOT NULL,
-		    "accrual" INTEGER NOT NULL,
+		    "accrual" DOUBLE PRECISION NOT NULL,
 		    "created_at" TIMESTAMP NOT NULL,
 			CONSTRAINT fk_order_user
 			    FOREIGN KEY(user_id) 

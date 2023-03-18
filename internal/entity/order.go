@@ -62,6 +62,6 @@ type Order struct {
 	OrderNumber   string
 	Status        Status
 	AccrualStatus AccrualStatus
-	Accrual       int
+	Accrual       float64
 	CreatedAt     time.Time
 }

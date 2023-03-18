@@ -83,7 +83,7 @@ func getAccrualStatus(status string) (entity.AccrualStatus, error) {
 }
 
 type AccrualOrderResponseModel struct {
-	Order   string `json:"order"`
-	Status  string `json:"status"`
-	Accrual int    `json:"accrual,omitempty"`
+	Order   string  `json:"order"`
+	Status  string  `json:"status"`
+	Accrual float64 `json:"accrual,omitempty"`
 }

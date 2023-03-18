@@ -50,7 +50,7 @@ type Credentials struct {
 type AccrualOrder struct {
 	Order   string
 	Status  entity.AccrualStatus
-	Accrual int
+	Accrual float64
 }
 
 //endregion DTO
