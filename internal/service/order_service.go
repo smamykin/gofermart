@@ -71,6 +71,7 @@ func (o *OrderService) UpdateOrdersStatuses() error {
 		}
 
 		order.AccrualStatus = accrualOrder.Status
+		order.Accrual = accrualOrder.Accrual
 
 		_, err = o.OrderRepository.UpdateOrder(order)
 		if err != nil {

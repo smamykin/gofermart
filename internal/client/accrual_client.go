@@ -45,7 +45,7 @@ func (a *AccrualClient) GetOrder(orderNumber string) (service.AccrualOrder, erro
 			resp.String(),
 		)
 	}
-	model, ok := resp.Result().(AccrualOrderResponseModel)
+	model, ok := resp.Result().(*AccrualOrderResponseModel)
 	if !ok {
 		return service.AccrualOrder{}, fmt.Errorf(
 			"unprocessable result from accrual service. Status: %s, Body: %s",
