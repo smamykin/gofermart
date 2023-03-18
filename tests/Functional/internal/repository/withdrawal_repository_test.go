@@ -2,6 +2,7 @@ package repository
 
 import (
 	"github.com/smamykin/gofermart/internal/entity"
+	"github.com/smamykin/gofermart/internal/service"
 	"github.com/smamykin/gofermart/tests/Functional/utils"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -76,6 +77,28 @@ func TestWithdrawalRepository_GetAmountSumByUserId(t *testing.T) {
 	actualSum, err = sut.GetAmountSumByUserID(user.ID)
 	require.NoError(t, err)
 	require.Equal(t, expectedSum, actualSum)
+}
+func TestWithdrawalRepository_GetWithdrawalByOrderNumber(t *testing.T) {
+	c := utils.GetContainer(t)
+	db := c.DB()
+	utils.TruncateTable(t, db)
+
+	user := utils.InsertUser(t, db, entity.User{})
+	sut := c.WithdrawalRepository()
+	expectedWithdrawal, err := sut.AddWithdrawal(entity.Withdrawal{
+		UserID:      user.ID,
+		OrderNumber: "1",
+		Amount:      0,
+	})
+	require.NoError(t, err)
+
+	actualOrder, err := sut.GetWithdrawalByOrderNumber(expectedWithdrawal.OrderNumber)
+	require.NoError(t, err)
+
+	require.Equal(t, expectedWithdrawal, actualOrder)
+
+	_, err = sut.GetWithdrawalByOrderNumber("unknown order number")
+	require.Equal(t, err, service.ErrEntityIsNotFound)
 }
 
 func assertWithdrawal(t *testing.T, expected entity.Withdrawal, actual entity.Withdrawal, createAtMin time.Time, createAtMax time.Time) {

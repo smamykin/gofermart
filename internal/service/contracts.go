@@ -26,6 +26,7 @@ type WithdrawalRepositoryInterface interface {
 	GetAmountSumByUserID(userID int) (sum float64, err error)
 	AddWithdrawal(withdrawal entity.Withdrawal) (entity.Withdrawal, error)
 	GetWithdrawal(ID int) (order entity.Withdrawal, err error)
+	GetWithdrawalByOrderNumber(orderNumber string) (order entity.Withdrawal, err error)
 }
 
 type AccrualClientInterface interface {
@@ -44,8 +45,9 @@ type HashGeneratorInterface interface {
 var ErrEntityIsNotFound = errors.New("entity is not found")
 var ErrLoginIsNotValid = errors.New("login is incorrect")
 var ErrPwdIsNotValid = errors.New("password is incorrect")
-var ErrOrderAlreadyExists = errors.New("order already exists")
+var ErrEntityAlreadyExists = errors.New("entity already exists")
 var ErrInvalidOrderNumber = errors.New("order number is invalid")
+var ErrNotEnoughAccrual = errors.New("not enough bonuses on the account")
 
 //endregion errors
 

@@ -14,24 +14,27 @@ func NewUserController(
 	logger contracts.LoggerInterface,
 	userService *service.UserService,
 	orderService *service.OrderService,
+	withdrawalService *service.WithdrawalService,
 	apiSecret []byte,
 	tokenLifespan time.Duration,
 ) *UserController {
 	return &UserController{
-		logger:        logger,
-		userService:   userService,
-		orderService:  orderService,
-		apiSecret:     apiSecret,
-		tokenLifespan: tokenLifespan,
+		logger:            logger,
+		userService:       userService,
+		orderService:      orderService,
+		withdrawalService: withdrawalService,
+		apiSecret:         apiSecret,
+		tokenLifespan:     tokenLifespan,
 	}
 }
 
 type UserController struct {
-	logger        contracts.LoggerInterface
-	userService   *service.UserService
-	orderService  *service.OrderService
-	apiSecret     []byte
-	tokenLifespan time.Duration
+	logger            contracts.LoggerInterface
+	userService       *service.UserService
+	orderService      *service.OrderService
+	withdrawalService *service.WithdrawalService
+	apiSecret         []byte
+	tokenLifespan     time.Duration
 }
 
 func (u *UserController) SetupRoutes(public *gin.RouterGroup, protected *gin.RouterGroup) {
@@ -40,6 +43,7 @@ func (u *UserController) SetupRoutes(public *gin.RouterGroup, protected *gin.Rou
 	protected.POST("/api/user/orders", u.addOrderHandler)
 	protected.GET("/api/user/orders", u.orderListHandler)
 	protected.GET("/api/user/balance", u.balanceHandler)
+	protected.POST("/api/user/balance/withdraw", u.withdrawHandler)
 }
 
 func (u *UserController) registerHandler(c *gin.Context) {
@@ -111,7 +115,7 @@ func (u *UserController) addOrderHandler(c *gin.Context) {
 	}
 	order, err := u.orderService.AddOrder(currentUserID, orderNumber)
 	if err != nil {
-		if err == service.ErrOrderAlreadyExists {
+		if err == service.ErrEntityAlreadyExists {
 			if order.UserID == currentUserID {
 				c.JSON(http.StatusOK, gin.H{"message": "order already exists"})
 				return
@@ -172,6 +176,34 @@ func (u *UserController) balanceHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, balance)
 }
 
+func (u *UserController) withdrawHandler(c *gin.Context) {
+	userID := getCurrentUserIDFromContext(c)
+	var withdrawalRequestModel WithdrawalRequestModel
+	err := c.ShouldBindJSON(&withdrawalRequestModel)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	withdraw, err := u.withdrawalService.Withdraw(userID, withdrawalRequestModel.Amount, withdrawalRequestModel.OrderNumber)
+	if err != nil {
+		if err == service.ErrEntityAlreadyExists {
+			c.JSON(http.StatusConflict, gin.H{"message": "order already exists"})
+			return
+		}
+
+		if err == service.ErrInvalidOrderNumber {
+			c.JSON(http.StatusUnprocessableEntity, gin.H{"message": err.Error()})
+			return
+		}
+
+		u.logger.Err(err)
+		c.JSON(http.StatusServiceUnavailable, gin.H{"message": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, withdraw)
+}
+
 func getCurrentUserIDFromContext(c *gin.Context) int {
 	currentUserIDAsAny, ok := c.Get("current_user_id")
 	if !ok {
@@ -189,4 +221,9 @@ type OrderResponseModel struct {
 	Status     string  `json:"status"`
 	Accrual    float64 `json:"accrual,omitempty"`
 	UploadedAt string  `json:"uploaded_at" `
+}
+
+type WithdrawalRequestModel struct {
+	OrderNumber string  `json:"order"`
+	Amount      float64 `json:"sum"`
 }

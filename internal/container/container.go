@@ -46,6 +46,10 @@ func NewContainer(zLogger *zerolog.Logger) (c *Container, err error) {
 		AccrualClient:   client.NewAccrualClient(c.Config().AccrualEntrypoint),
 		Logger:          c.logger,
 	}
+	c.withdrawalService = &service.WithdrawalService{
+		WithdrawalRepository: c.WithdrawalRepository(),
+		OrderRepository:      c.OrderRepository(),
+	}
 	c.controllers = []controllerInterface{
 		controller.NewHealthcheckController(repository.CreateHealthcheckFunc(c.DB())),
 		controller.NewUserController(
@@ -57,6 +61,7 @@ func NewContainer(zLogger *zerolog.Logger) (c *Container, err error) {
 				HashGenerator:        &pwdhash.HashGenerator{},
 			},
 			c.OrderService(),
+			c.WithdrawalService(),
 			APISecret,
 			c.Config().TokenLifespan,
 		),
@@ -78,6 +83,11 @@ type Container struct {
 	orderService         *service.OrderService
 	logger               *logger.ZeroLogAdapter
 	withdrawalRepository *repository.WithdrawalRepository
+	withdrawalService    *service.WithdrawalService
+}
+
+func (c *Container) WithdrawalService() *service.WithdrawalService {
+	return c.withdrawalService
 }
 
 func (c *Container) Controllers() []controllerInterface {

@@ -261,6 +261,21 @@ func (mr *MockWithdrawalRepositoryInterfaceMockRecorder) GetWithdrawal(ID interf
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWithdrawal", reflect.TypeOf((*MockWithdrawalRepositoryInterface)(nil).GetWithdrawal), ID)
 }
 
+// GetWithdrawalByOrderNumber mocks base method.
+func (m *MockWithdrawalRepositoryInterface) GetWithdrawalByOrderNumber(orderNumber string) (entity.Withdrawal, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetWithdrawalByOrderNumber", orderNumber)
+	ret0, _ := ret[0].(entity.Withdrawal)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetWithdrawalByOrderNumber indicates an expected call of GetWithdrawalByOrderNumber.
+func (mr *MockWithdrawalRepositoryInterfaceMockRecorder) GetWithdrawalByOrderNumber(orderNumber interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWithdrawalByOrderNumber", reflect.TypeOf((*MockWithdrawalRepositoryInterface)(nil).GetWithdrawalByOrderNumber), orderNumber)
+}
+
 // MockAccrualClientInterface is a mock of AccrualClientInterface interface.
 type MockAccrualClientInterface struct {
 	ctrl     *gomock.Controller

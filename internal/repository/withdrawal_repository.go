@@ -15,6 +15,19 @@ type WithdrawalRepository struct {
 	db *sql.DB
 }
 
+func (w *WithdrawalRepository) GetWithdrawalByOrderNumber(orderNumber string) (order entity.Withdrawal, err error) {
+	row := w.db.QueryRow(
+		`
+			SELECT id, user_id, order_number, amount, created_at
+			FROM "withdrawal"
+			WHERE order_number = $1
+		`,
+		orderNumber,
+	)
+
+	return hydrateWithdrawal(row)
+}
+
 func (w *WithdrawalRepository) GetWithdrawal(ID int) (order entity.Withdrawal, err error) {
 	row := w.db.QueryRow(`
 		SELECT id, user_id, order_number, amount, created_at
