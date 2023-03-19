@@ -20,7 +20,7 @@ func (o *OrderService) AddOrder(userID int, orderNumber string) (order entity.Or
 
 	order, err = o.OrderRepository.GetOrderByOrderNumber(orderNumber)
 	if err == nil {
-		return order, ErrOrderAlreadyExists
+		return order, ErrEntityAlreadyExists
 	}
 
 	order = entity.Order{

@@ -43,7 +43,7 @@ func TestOrderService_AddOrder(t *testing.T) {
 				OrderRepository: getOrderRepositoryMockForAddOrder(t, expectedOrder, nil, nil),
 			},
 			expectedOrder: expectedOrder,
-			expectedErr:   service.ErrOrderAlreadyExists,
+			expectedErr:   service.ErrEntityAlreadyExists,
 		},
 		"unexpected error while getting the order": {
 			userID:      userID,

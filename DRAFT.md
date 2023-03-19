@@ -78,6 +78,7 @@ namespace Gofermart {
     entity "Withdrawal" as W {
         id int
         userId int
+        orderNumber string
         amount float
         created_at datetime
     }
