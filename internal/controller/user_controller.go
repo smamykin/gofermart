@@ -44,6 +44,7 @@ func (u *UserController) SetupRoutes(public *gin.RouterGroup, protected *gin.Rou
 	protected.GET("/api/user/orders", u.orderListHandler)
 	protected.GET("/api/user/balance", u.balanceHandler)
 	protected.POST("/api/user/balance/withdraw", u.withdrawHandler)
+	protected.GET("/api/user/withdrawals", u.withdrawalListHandler)
 }
 
 func (u *UserController) registerHandler(c *gin.Context) {
@@ -204,6 +205,31 @@ func (u *UserController) withdrawHandler(c *gin.Context) {
 	c.JSON(http.StatusOK, withdraw)
 }
 
+func (u *UserController) withdrawalListHandler(c *gin.Context) {
+	userID := getCurrentUserIDFromContext(c)
+	withdrawals, err := u.withdrawalService.GetAllWithdrawalByUserID(userID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusServiceUnavailable, gin.H{"message": err.Error()})
+		return
+	}
+	var responseModels []WithdrawalResponseModel
+	for _, withdrawal := range withdrawals {
+		responseModel := WithdrawalResponseModel{
+			Number:      withdrawal.OrderNumber,
+			Amount:      withdrawal.Amount,
+			ProcessedAt: withdrawal.CreatedAt.Format(time.RFC3339),
+		}
+		responseModels = append(responseModels, responseModel)
+	}
+
+	if len(withdrawals) == 0 {
+		c.JSON(http.StatusNoContent, responseModels)
+		return
+	}
+
+	c.JSON(http.StatusOK, responseModels)
+}
+
 func getCurrentUserIDFromContext(c *gin.Context) int {
 	currentUserIDAsAny, ok := c.Get("current_user_id")
 	if !ok {
@@ -221,6 +247,11 @@ type OrderResponseModel struct {
 	Status     string  `json:"status"`
 	Accrual    float64 `json:"accrual,omitempty"`
 	UploadedAt string  `json:"uploaded_at" `
+}
+type WithdrawalResponseModel struct {
+	Number      string  `json:"number"`
+	Amount      float64 `json:"sum"`
+	ProcessedAt string  `json:"processed_at"`
 }
 
 type WithdrawalRequestModel struct {

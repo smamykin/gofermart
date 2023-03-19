@@ -27,6 +27,7 @@ type WithdrawalRepositoryInterface interface {
 	AddWithdrawal(withdrawal entity.Withdrawal) (entity.Withdrawal, error)
 	GetWithdrawal(ID int) (order entity.Withdrawal, err error)
 	GetWithdrawalByOrderNumber(orderNumber string) (order entity.Withdrawal, err error)
+	GetAllByUserID(userID int) ([]entity.Withdrawal, error)
 }
 
 type AccrualClientInterface interface {

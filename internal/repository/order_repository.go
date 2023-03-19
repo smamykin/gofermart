@@ -70,6 +70,7 @@ func (o *OrderRepository) GetAllByUserID(userID int) ([]entity.Order, error) {
 			SELECT id, user_id, order_number, status, accrual_status, accrual, created_at
 			FROM "order"
 			WHERE user_id = $1
+			ORDER BY created_at
 		`,
 		userID,
 	)

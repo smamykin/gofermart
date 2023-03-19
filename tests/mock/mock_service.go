@@ -231,6 +231,21 @@ func (mr *MockWithdrawalRepositoryInterfaceMockRecorder) AddWithdrawal(withdrawa
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddWithdrawal", reflect.TypeOf((*MockWithdrawalRepositoryInterface)(nil).AddWithdrawal), withdrawal)
 }
 
+// GetAllByUserID mocks base method.
+func (m *MockWithdrawalRepositoryInterface) GetAllByUserID(userID int) ([]entity.Withdrawal, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetAllByUserID", userID)
+	ret0, _ := ret[0].([]entity.Withdrawal)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetAllByUserID indicates an expected call of GetAllByUserID.
+func (mr *MockWithdrawalRepositoryInterfaceMockRecorder) GetAllByUserID(userID interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllByUserID", reflect.TypeOf((*MockWithdrawalRepositoryInterface)(nil).GetAllByUserID), userID)
+}
+
 // GetAmountSumByUserID mocks base method.
 func (m *MockWithdrawalRepositoryInterface) GetAmountSumByUserID(userID int) (float64, error) {
 	m.ctrl.T.Helper()
