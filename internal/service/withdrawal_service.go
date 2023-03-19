@@ -48,3 +48,7 @@ func (w *WithdrawalService) Withdraw(userID int, amount float64, orderNumber str
 
 	return withdrawal, err
 }
+
+func (w *WithdrawalService) GetAllWithdrawalByUserID(userID int) (withdrawals []entity.Withdrawal, err error) {
+	return w.WithdrawalRepository.GetAllByUserID(userID)
+}

@@ -189,6 +189,46 @@ func TestWithdraw(t *testing.T) {
 	require.Equal(t, user.ID, actualWithdrawal.UserID)
 }
 
+func TestWithdrawalList(t *testing.T) {
+	c := utils.GetContainer(t)
+	utils.TruncateTable(t, c.DB())
+
+	user := utils.InsertUser(t, c.DB(), entity.User{})
+	userNotToGet := utils.InsertUser(t, c.DB(), entity.User{})
+
+	//create orders to get
+	withdrawalToGet, err := c.WithdrawalRepository().AddWithdrawal(entity.Withdrawal{
+		UserID:      user.ID,
+		OrderNumber: "123",
+		Amount:      111,
+	})
+	require.NoError(t, err)
+	_, err = c.WithdrawalRepository().AddWithdrawal(entity.Withdrawal{
+		UserID:      userNotToGet.ID,
+		OrderNumber: "321",
+	})
+	require.NoError(t, err)
+
+	r := c.Router()
+	w := httptest.NewRecorder()
+	req, _ := http.NewRequest("GET", "/api/user/withdrawals", nil)
+	authorize(t, user.ID, c, req)
+
+	r.ServeHTTP(w, req)
+
+	require.Equal(t, 200, w.Code, w.Body.String())
+	var actualResponse []controller.WithdrawalResponseModel
+	err = json.Unmarshal(w.Body.Bytes(), &actualResponse)
+	require.NoError(t, err)
+	require.Equal(t, []controller.WithdrawalResponseModel{
+		{
+			OrderNumber: withdrawalToGet.OrderNumber,
+			Amount:      withdrawalToGet.Amount,
+			ProcessedAt: withdrawalToGet.CreatedAt.Format(time.RFC3339),
+		},
+	}, actualResponse)
+}
+
 func authorize(t *testing.T, userID int, c *container.Container, req *http.Request) {
 	tkn, err := token.Generate(userID, []byte(c.Config().APISecret), c.Config().TokenLifespan)
 	require.NoError(t, err)

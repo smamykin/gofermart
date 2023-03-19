@@ -15,6 +15,24 @@ type WithdrawalRepository struct {
 	db *sql.DB
 }
 
+func (w *WithdrawalRepository) GetAllByUserID(userID int) ([]entity.Withdrawal, error) {
+	rows, err := w.db.Query(
+		`
+			SELECT id, user_id, order_number, amount, created_at
+			FROM "withdrawal"
+			WHERE user_id = $1
+			ORDER BY created_at
+		`,
+		userID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	return hydrateWithdrawals(rows)
+}
+
 func (w *WithdrawalRepository) GetWithdrawalByOrderNumber(orderNumber string) (order entity.Withdrawal, err error) {
 	row := w.db.QueryRow(
 		`
@@ -91,4 +109,24 @@ func hydrateWithdrawal(row *sql.Row) (withdrawal entity.Withdrawal, err error) {
 	}
 
 	return withdrawal, err
+}
+
+func hydrateWithdrawals(rows *sql.Rows) (withdrawals []entity.Withdrawal, err error) {
+	withdrawals = make([]entity.Withdrawal, 0)
+	for rows.Next() {
+		var withdrawal entity.Withdrawal
+		err = rows.Scan(&withdrawal.ID, &withdrawal.UserID, &withdrawal.OrderNumber, &withdrawal.Amount, &withdrawal.CreatedAt)
+		if err != nil {
+			return nil, err
+		}
+
+		withdrawals = append(withdrawals, withdrawal)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return withdrawals, nil
 }

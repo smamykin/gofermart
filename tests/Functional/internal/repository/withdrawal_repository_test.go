@@ -101,6 +101,35 @@ func TestWithdrawalRepository_GetWithdrawalByOrderNumber(t *testing.T) {
 	require.Equal(t, err, service.ErrEntityIsNotFound)
 }
 
+func TestWithdrawalRepository_GetAllByUserID(t *testing.T) {
+	c := utils.GetContainer(t)
+	db := c.DB()
+	utils.TruncateTable(t, db)
+
+	userToGet := utils.InsertUser(t, db, entity.User{})
+	userNotToGet := utils.InsertUser(t, db, entity.User{})
+	sut := c.WithdrawalRepository()
+	withdrawalToGet0, err := c.WithdrawalRepository().AddWithdrawal(entity.Withdrawal{
+		UserID:      userToGet.ID,
+		OrderNumber: "123",
+	})
+	require.NoError(t, err)
+	_, err = c.WithdrawalRepository().AddWithdrawal(entity.Withdrawal{
+		UserID:      userNotToGet.ID,
+		OrderNumber: "321",
+	})
+	require.NoError(t, err)
+
+	actual, err := sut.GetAllByUserID(userToGet.ID)
+	require.NoError(t, err)
+
+	require.Equal(t, []entity.Withdrawal{withdrawalToGet0}, actual)
+
+	actual, err = sut.GetAllByUserID(999)
+	require.Equal(t, []entity.Withdrawal{}, actual)
+	require.Equal(t, err, nil)
+}
+
 func assertWithdrawal(t *testing.T, expected entity.Withdrawal, actual entity.Withdrawal, createAtMin time.Time, createAtMax time.Time) {
 	require.WithinRange(t, actual.CreatedAt, createAtMin.Truncate(time.Second), createAtMax)
 	now := time.Time{}
