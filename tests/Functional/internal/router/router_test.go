@@ -222,7 +222,7 @@ func TestWithdrawalList(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, []controller.WithdrawalResponseModel{
 		{
-			Number:      withdrawalToGet.OrderNumber,
+			OrderNumber: withdrawalToGet.OrderNumber,
 			Amount:      withdrawalToGet.Amount,
 			ProcessedAt: withdrawalToGet.CreatedAt.Format(time.RFC3339),
 		},

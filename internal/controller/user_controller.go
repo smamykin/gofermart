@@ -215,7 +215,7 @@ func (u *UserController) withdrawalListHandler(c *gin.Context) {
 	var responseModels []WithdrawalResponseModel
 	for _, withdrawal := range withdrawals {
 		responseModel := WithdrawalResponseModel{
-			Number:      withdrawal.OrderNumber,
+			OrderNumber: withdrawal.OrderNumber,
 			Amount:      withdrawal.Amount,
 			ProcessedAt: withdrawal.CreatedAt.Format(time.RFC3339),
 		}
@@ -249,7 +249,7 @@ type OrderResponseModel struct {
 	UploadedAt string  `json:"uploaded_at" `
 }
 type WithdrawalResponseModel struct {
-	Number      string  `json:"number"`
+	OrderNumber string  `json:"order"`
 	Amount      float64 `json:"sum"`
 	ProcessedAt string  `json:"processed_at"`
 }
