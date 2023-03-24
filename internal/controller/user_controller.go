@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/smamykin/gofermart/internal/service"
@@ -54,27 +55,27 @@ func (u *UserController) registerHandler(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
 	user, err := u.userService.CreateNewUser(credentials)
-	if err == nil {
-		tkn, err := token.Generate(user.ID, u.apiSecret, u.tokenLifespan)
-		if err != nil {
-			u.logger.Err(err, "error occurred while generating an auth token after user's registration")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-
-		c.Header("Authorization", fmt.Sprintf("Bearer %s", tkn))
-		c.JSON(http.StatusOK, gin.H{"message": "success"})
-		return
-	}
-	if err == service.ErrPwdIsNotValid || err == service.ErrLoginIsNotValid {
+	if errors.Is(err, service.ErrPwdIsNotValid) || errors.Is(err, service.ErrLoginIsNotValid) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	if err != nil {
+		u.logger.Err(err, "unknown error while creating new user")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
 
-	u.logger.Err(err, "unknown error while creating new user")
-	c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	tkn, err := token.Generate(user.ID, u.apiSecret, u.tokenLifespan)
+	if err != nil {
+		u.logger.Err(err, "error occurred while generating an auth token after user's registration")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.Header("Authorization", fmt.Sprintf("Bearer %s", tkn))
+	c.JSON(http.StatusOK, gin.H{"message": "success"})
+	return
 }
 
 func (u *UserController) loginHandler(c *gin.Context) {
@@ -115,22 +116,22 @@ func (u *UserController) addOrderHandler(c *gin.Context) {
 		return
 	}
 	order, err := u.orderService.AddOrder(currentUserID, orderNumber)
+	if err == service.ErrEntityAlreadyExists {
+		if order.UserID == currentUserID {
+			c.JSON(http.StatusOK, gin.H{"message": "order already exists"})
+			return
+		}
+
+		c.JSON(http.StatusConflict, gin.H{"message": "order already exists"})
+		return
+	}
+
+	if err == service.ErrInvalidOrderNumber {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"message": err.Error()})
+		return
+	}
+
 	if err != nil {
-		if err == service.ErrEntityAlreadyExists {
-			if order.UserID == currentUserID {
-				c.JSON(http.StatusOK, gin.H{"message": "order already exists"})
-				return
-			}
-
-			c.JSON(http.StatusConflict, gin.H{"message": "order already exists"})
-			return
-		}
-
-		if err == service.ErrInvalidOrderNumber {
-			c.JSON(http.StatusUnprocessableEntity, gin.H{"message": err.Error()})
-			return
-		}
-
 		u.logger.Err(err, "unknown error while adding the order")
 		c.JSON(http.StatusServiceUnavailable, gin.H{"message": err.Error()})
 		return
@@ -187,21 +188,22 @@ func (u *UserController) withdrawHandler(c *gin.Context) {
 	}
 
 	withdraw, err := u.withdrawalService.Withdraw(userID, withdrawalRequestModel.Amount, withdrawalRequestModel.OrderNumber)
+	if err == service.ErrEntityAlreadyExists {
+		c.JSON(http.StatusConflict, gin.H{"message": "order already exists"})
+		return
+	}
+
+	if err == service.ErrInvalidOrderNumber {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"message": err.Error()})
+		return
+	}
+
 	if err != nil {
-		if err == service.ErrEntityAlreadyExists {
-			c.JSON(http.StatusConflict, gin.H{"message": "order already exists"})
-			return
-		}
-
-		if err == service.ErrInvalidOrderNumber {
-			c.JSON(http.StatusUnprocessableEntity, gin.H{"message": err.Error()})
-			return
-		}
-
 		u.logger.Err(err, "unknown error while withdrawing")
 		c.JSON(http.StatusServiceUnavailable, gin.H{"message": err.Error()})
 		return
 	}
+
 	c.JSON(http.StatusOK, withdraw)
 }
 
