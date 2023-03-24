@@ -1,11 +1,19 @@
 package utils
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
-func InvokeFunctionWithInterval(duration time.Duration, functionToInvoke func()) {
+func InvokeFunctionWithInterval(ctx context.Context, duration time.Duration, functionToInvoke func()) {
 	ticker := time.NewTicker(duration)
 	for {
-		<-ticker.C
-		functionToInvoke()
+		select {
+		case <-ticker.C:
+			functionToInvoke()
+		case <-ctx.Done():
+			return
+		}
+
 	}
 }
