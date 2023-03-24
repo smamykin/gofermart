@@ -31,10 +31,26 @@ func (w *WithdrawalRepository) GetAllByUserID(userID int) ([]entity.Withdrawal, 
 	}
 	defer rows.Close()
 
-	return hydrateWithdrawals(rows)
+	var withdrawals = make([]entity.Withdrawal, 0)
+	for rows.Next() {
+		var withdrawal entity.Withdrawal
+		err = rows.Scan(&withdrawal.ID, &withdrawal.UserID, &withdrawal.OrderNumber, &withdrawal.Amount, &withdrawal.CreatedAt)
+		if err != nil {
+			return nil, err
+		}
+
+		withdrawals = append(withdrawals, withdrawal)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return withdrawals, nil
 }
 
-func (w *WithdrawalRepository) GetWithdrawalByOrderNumber(orderNumber string) (order entity.Withdrawal, err error) {
+func (w *WithdrawalRepository) GetWithdrawalByOrderNumber(orderNumber string) (withdrawal entity.Withdrawal, err error) {
 	row := w.db.QueryRow(
 		`
 			SELECT id, user_id, order_number, amount, created_at
@@ -44,17 +60,37 @@ func (w *WithdrawalRepository) GetWithdrawalByOrderNumber(orderNumber string) (o
 		orderNumber,
 	)
 
-	return hydrateWithdrawal(row)
+	if row.Err() != nil {
+		return withdrawal, row.Err()
+	}
+
+	err = row.Scan(&withdrawal.ID, &withdrawal.UserID, &withdrawal.OrderNumber, &withdrawal.Amount, &withdrawal.CreatedAt)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return withdrawal, service.ErrEntityIsNotFound
+	}
+
+	return withdrawal, err
 }
 
-func (w *WithdrawalRepository) GetWithdrawal(ID int) (order entity.Withdrawal, err error) {
+func (w *WithdrawalRepository) GetWithdrawal(ID int) (withdrawal entity.Withdrawal, err error) {
 	row := w.db.QueryRow(`
 		SELECT id, user_id, order_number, amount, created_at
 		FROM "withdrawal"
 		WHERE id = $1
 	`, ID)
 
-	return hydrateWithdrawal(row)
+	if row.Err() != nil {
+		return withdrawal, row.Err()
+	}
+
+	err = row.Scan(&withdrawal.ID, &withdrawal.UserID, &withdrawal.OrderNumber, &withdrawal.Amount, &withdrawal.CreatedAt)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return withdrawal, service.ErrEntityIsNotFound
+	}
+
+	return withdrawal, err
 }
 
 func (w *WithdrawalRepository) GetAmountSumByUserID(userID int) (sum float64, err error) {
@@ -96,38 +132,4 @@ func (w *WithdrawalRepository) AddWithdrawal(withdrawal entity.Withdrawal) (enti
 	err := row.Scan(&withdrawal.ID)
 
 	return withdrawal, err
-}
-
-func hydrateWithdrawal(row *sql.Row) (withdrawal entity.Withdrawal, err error) {
-	if row.Err() != nil {
-		return withdrawal, row.Err()
-	}
-
-	err = row.Scan(&withdrawal.ID, &withdrawal.UserID, &withdrawal.OrderNumber, &withdrawal.Amount, &withdrawal.CreatedAt)
-
-	if errors.Is(err, sql.ErrNoRows) {
-		return withdrawal, service.ErrEntityIsNotFound
-	}
-
-	return withdrawal, err
-}
-
-func hydrateWithdrawals(rows *sql.Rows) (withdrawals []entity.Withdrawal, err error) {
-	withdrawals = make([]entity.Withdrawal, 0)
-	for rows.Next() {
-		var withdrawal entity.Withdrawal
-		err = rows.Scan(&withdrawal.ID, &withdrawal.UserID, &withdrawal.OrderNumber, &withdrawal.Amount, &withdrawal.CreatedAt)
-		if err != nil {
-			return nil, err
-		}
-
-		withdrawals = append(withdrawals, withdrawal)
-	}
-
-	err = rows.Err()
-	if err != nil {
-		return nil, err
-	}
-
-	return withdrawals, nil
 }
