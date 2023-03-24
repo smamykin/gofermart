@@ -10,6 +10,7 @@ import (
 	gomock "github.com/golang/mock/gomock"
 	entity "github.com/smamykin/gofermart/internal/entity"
 	service "github.com/smamykin/gofermart/internal/service"
+	money "github.com/smamykin/gofermart/pkg/money"
 )
 
 // MockUserRepositoryInterface is a mock of UserRepositoryInterface interface.
@@ -104,10 +105,10 @@ func (mr *MockOrderRepositoryInterfaceMockRecorder) AddOrder(o interface{}) *gom
 }
 
 // GetAccrualSumByUserID mocks base method.
-func (m *MockOrderRepositoryInterface) GetAccrualSumByUserID(userID int) (float64, error) {
+func (m *MockOrderRepositoryInterface) GetAccrualSumByUserID(userID int) (money.IntMoney, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAccrualSumByUserID", userID)
-	ret0, _ := ret[0].(float64)
+	ret0, _ := ret[0].(money.IntMoney)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -247,10 +248,10 @@ func (mr *MockWithdrawalRepositoryInterfaceMockRecorder) GetAllByUserID(userID i
 }
 
 // GetAmountSumByUserID mocks base method.
-func (m *MockWithdrawalRepositoryInterface) GetAmountSumByUserID(userID int) (float64, error) {
+func (m *MockWithdrawalRepositoryInterface) GetAmountSumByUserID(userID int) (money.IntMoney, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAmountSumByUserID", userID)
-	ret0, _ := ret[0].(float64)
+	ret0, _ := ret[0].(money.IntMoney)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

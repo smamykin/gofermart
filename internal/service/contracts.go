@@ -3,6 +3,7 @@ package service
 import (
 	"errors"
 	"github.com/smamykin/gofermart/internal/entity"
+	"github.com/smamykin/gofermart/pkg/money"
 )
 
 // region interfaces
@@ -19,11 +20,11 @@ type OrderRepositoryInterface interface {
 	GetAllByUserID(userID int) ([]entity.Order, error)
 	UpdateOrder(order entity.Order) (entity.Order, error)
 	GetOrdersWithUnfinishedStatus() ([]entity.Order, error)
-	GetAccrualSumByUserID(userID int) (sum float64, err error)
+	GetAccrualSumByUserID(userID int) (sum money.IntMoney, err error)
 }
 
 type WithdrawalRepositoryInterface interface {
-	GetAmountSumByUserID(userID int) (sum float64, err error)
+	GetAmountSumByUserID(userID int) (sum money.IntMoney, err error)
 	AddWithdrawal(withdrawal entity.Withdrawal) (entity.Withdrawal, error)
 	GetWithdrawal(ID int) (order entity.Withdrawal, err error)
 	GetWithdrawalByOrderNumber(orderNumber string) (order entity.Withdrawal, err error)

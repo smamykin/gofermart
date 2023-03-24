@@ -9,6 +9,7 @@ import (
 	"github.com/smamykin/gofermart/internal/container"
 	"github.com/smamykin/gofermart/internal/controller"
 	"github.com/smamykin/gofermart/internal/entity"
+	"github.com/smamykin/gofermart/pkg/money"
 	"github.com/smamykin/gofermart/pkg/pwdhash"
 	"github.com/smamykin/gofermart/pkg/token"
 	"github.com/smamykin/gofermart/tests/Functional/utils"
@@ -122,7 +123,7 @@ func TestOrderList(t *testing.T) {
 	require.Equal(t, []controller.OrderResponseModel{
 		{
 			Number:     orderToGet.OrderNumber,
-			Accrual:    orderToGet.Accrual,
+			Accrual:    orderToGet.Accrual.AsFloat(),
 			Status:     orderToGet.Status.String(),
 			UploadedAt: orderToGet.CreatedAt.Format(time.RFC3339),
 		},
@@ -139,12 +140,12 @@ func TestBalance(t *testing.T) {
 		OrderNumber:   "123",
 		Status:        entity.OrderStatusProcessed,
 		AccrualStatus: entity.AccrualStatusProcessed,
-		Accrual:       442.5,
+		Accrual:       money.FromFloat(442.5),
 	})
 	require.NoError(t, err)
 	_, err = c.WithdrawalRepository().AddWithdrawal(entity.Withdrawal{
 		UserID: user.ID,
-		Amount: 42.3,
+		Amount: money.FromFloat(42.3),
 	})
 	require.NoError(t, err)
 
@@ -170,7 +171,7 @@ func TestWithdraw(t *testing.T) {
 	_, err := c.OrderRepository().AddOrder(entity.Order{
 		UserID:      user.ID,
 		OrderNumber: "123",
-		Accrual:     sum,
+		Accrual:     money.FromFloat(sum),
 	})
 	require.NoError(t, err)
 
@@ -223,7 +224,7 @@ func TestWithdrawalList(t *testing.T) {
 	require.Equal(t, []controller.WithdrawalResponseModel{
 		{
 			OrderNumber: withdrawalToGet.OrderNumber,
-			Amount:      withdrawalToGet.Amount,
+			Amount:      withdrawalToGet.Amount.AsFloat(),
 			ProcessedAt: withdrawalToGet.CreatedAt.Format(time.RFC3339),
 		},
 	}, actualResponse)

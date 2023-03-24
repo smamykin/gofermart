@@ -2,8 +2,10 @@ package repository
 
 import (
 	"database/sql"
+	"errors"
 	"github.com/smamykin/gofermart/internal/entity"
 	"github.com/smamykin/gofermart/internal/service"
+	"github.com/smamykin/gofermart/pkg/money"
 	"time"
 )
 
@@ -48,7 +50,17 @@ func (o *OrderRepository) GetOrder(ID int) (order entity.Order, err error) {
 		WHERE id = $1
 	`, ID)
 
-	return hydrateOrder(row)
+	if row.Err() != nil {
+		return order, row.Err()
+	}
+
+	err = row.Scan(&order.ID, &order.UserID, &order.OrderNumber, &order.Status, &order.AccrualStatus, &order.Accrual, &order.CreatedAt)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return order, service.ErrEntityIsNotFound
+	}
+
+	return order, err
 }
 
 func (o *OrderRepository) GetOrderByOrderNumber(orderNumber string) (order entity.Order, err error) {
@@ -61,7 +73,17 @@ func (o *OrderRepository) GetOrderByOrderNumber(orderNumber string) (order entit
 		orderNumber,
 	)
 
-	return hydrateOrder(row)
+	if row.Err() != nil {
+		return order, row.Err()
+	}
+
+	err = row.Scan(&order.ID, &order.UserID, &order.OrderNumber, &order.Status, &order.AccrualStatus, &order.Accrual, &order.CreatedAt)
+
+	if errors.Is(err, sql.ErrNoRows) {
+		return order, service.ErrEntityIsNotFound
+	}
+
+	return order, err
 }
 
 func (o *OrderRepository) GetAllByUserID(userID int) ([]entity.Order, error) {
@@ -79,7 +101,23 @@ func (o *OrderRepository) GetAllByUserID(userID int) ([]entity.Order, error) {
 	}
 	defer rows.Close()
 
-	return hydrateOrders(rows)
+	var orders = make([]entity.Order, 0)
+	for rows.Next() {
+		var order entity.Order
+		err = rows.Scan(&order.ID, &order.UserID, &order.OrderNumber, &order.Status, &order.AccrualStatus, &order.Accrual, &order.CreatedAt)
+		if err != nil {
+			return nil, err
+		}
+
+		orders = append(orders, order)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return orders, nil
 }
 
 func (o *OrderRepository) UpdateOrder(order entity.Order) (entity.Order, error) {
@@ -133,44 +171,7 @@ func (o *OrderRepository) GetOrdersWithUnfinishedStatus() ([]entity.Order, error
 	}
 	defer rows.Close()
 
-	return hydrateOrders(rows)
-}
-
-func (o *OrderRepository) GetAccrualSumByUserID(userID int) (sum float64, err error) {
-	row := o.db.QueryRow(`
-		SELECT COALESCE(SUM(accrual), 0.00)
-		FROM "order"
-		WHERE user_id = $1
-	`, userID)
-
-	if row.Err() != nil {
-		return 0, row.Err()
-	}
-
-	err = row.Scan(&sum)
-	if err != nil {
-		return 0, err
-	}
-
-	return sum, nil
-}
-
-func hydrateOrder(row *sql.Row) (order entity.Order, err error) {
-	if row.Err() != nil {
-		return order, row.Err()
-	}
-
-	err = row.Scan(&order.ID, &order.UserID, &order.OrderNumber, &order.Status, &order.AccrualStatus, &order.Accrual, &order.CreatedAt)
-
-	if err == sql.ErrNoRows {
-		return order, service.ErrEntityIsNotFound
-	}
-
-	return order, err
-}
-
-func hydrateOrders(rows *sql.Rows) (orders []entity.Order, err error) {
-	orders = make([]entity.Order, 0)
+	var orders = make([]entity.Order, 0)
 	for rows.Next() {
 		var order entity.Order
 		err = rows.Scan(&order.ID, &order.UserID, &order.OrderNumber, &order.Status, &order.AccrualStatus, &order.Accrual, &order.CreatedAt)
@@ -187,4 +188,23 @@ func hydrateOrders(rows *sql.Rows) (orders []entity.Order, err error) {
 	}
 
 	return orders, nil
+}
+
+func (o *OrderRepository) GetAccrualSumByUserID(userID int) (sum money.IntMoney, err error) {
+	row := o.db.QueryRow(`
+		SELECT COALESCE(SUM(accrual), 0)
+		FROM "order"
+		WHERE user_id = $1
+	`, userID)
+
+	if row.Err() != nil {
+		return 0, row.Err()
+	}
+
+	err = row.Scan(&sum)
+	if err != nil {
+		return 0, err
+	}
+
+	return sum, nil
 }

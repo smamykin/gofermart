@@ -3,6 +3,7 @@ package repository
 import (
 	"github.com/smamykin/gofermart/internal/entity"
 	"github.com/smamykin/gofermart/internal/service"
+	"github.com/smamykin/gofermart/pkg/money"
 	"github.com/smamykin/gofermart/tests/Functional/utils"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -165,26 +166,26 @@ func TestOrderRepository_GetAccrualSumByUserId(t *testing.T) {
 	//first check if there is no withdrawals at all
 	actualSum, err := sut.GetAccrualSumByUserID(user.ID)
 	require.NoError(t, err)
-	require.Equal(t, .0, actualSum)
+	require.Equal(t, money.IntMoney(0), actualSum)
 
 	//second check if there are withdrawals
 	order0, err := sut.AddOrder(entity.Order{
 		UserID:      user.ID,
 		OrderNumber: "111",
-		Accrual:     11.1,
+		Accrual:     money.FromFloat(11.1),
 	})
 	require.NoError(t, err)
 	order1, err := sut.AddOrder(entity.Order{
 		UserID:      user.ID,
 		OrderNumber: "222",
-		Accrual:     22.2,
+		Accrual:     money.FromFloat(22.2),
 	})
 	require.NoError(t, err)
 
 	_, err = sut.AddOrder(entity.Order{
 		UserID:      anotherUser.ID,
 		OrderNumber: "333",
-		Accrual:     33.3,
+		Accrual:     money.FromFloat(33.3),
 	})
 	require.NoError(t, err)
 

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"errors"
 	"github.com/smamykin/gofermart/internal/entity"
 	"github.com/smamykin/gofermart/internal/service"
 )
@@ -39,7 +40,7 @@ func (d *UserRepository) GetUserByLogin(login string) (u entity.User, err error)
 		return u, nil
 	}
 
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return u, service.ErrEntityIsNotFound
 	}
 

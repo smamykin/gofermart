@@ -35,7 +35,7 @@ func (a *AccrualClient) GetOrder(orderNumber string) (service.AccrualOrder, erro
 		return service.AccrualOrder{
 			Order:  orderNumber,
 			Status: entity.AccrualStatusUnregistered,
-		}, nil
+		}, fmt.Errorf("order not found in accrual: %w", service.ErrEntityIsNotFound)
 	}
 
 	if resp.StatusCode() != http.StatusOK {

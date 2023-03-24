@@ -1,9 +1,11 @@
 package service
 
 import (
+	"errors"
 	"github.com/ShiraazMoollatjie/goluhn"
 	"github.com/smamykin/gofermart/internal/entity"
 	"github.com/smamykin/gofermart/pkg/contracts"
+	"github.com/smamykin/gofermart/pkg/money"
 )
 
 type OrderService struct {
@@ -50,15 +52,17 @@ func (o *OrderService) UpdateOrdersStatuses() error {
 	}
 	for _, order := range orders {
 		accrualOrder, err := o.AccrualClient.GetOrder(order.OrderNumber)
-		if err != nil {
-			o.Logger.Err(err)
+		if err != nil && !errors.Is(err, ErrEntityIsNotFound) {
+			o.Logger.Err(err, "error occurred while getting order from accrual service")
 			continue
 		}
 
+		if errors.Is(err, ErrEntityIsNotFound) {
+			o.Logger.Warn(err, "the order is not found in the accrual service")
+		}
+
 		switch accrualOrder.Status {
-		case entity.AccrualStatusRegistered:
-			fallthrough
-		case entity.AccrualStatusProcessing:
+		case entity.AccrualStatusRegistered, entity.AccrualStatusProcessing:
 			order.Status = entity.OrderStatusProcessing
 		case entity.AccrualStatusInvalid:
 			order.Status = entity.OrderStatusInvalid
@@ -71,11 +75,11 @@ func (o *OrderService) UpdateOrdersStatuses() error {
 		}
 
 		order.AccrualStatus = accrualOrder.Status
-		order.Accrual = accrualOrder.Accrual
+		order.Accrual = money.FromFloat(accrualOrder.Accrual)
 
 		_, err = o.OrderRepository.UpdateOrder(order)
 		if err != nil {
-			o.Logger.Err(err)
+			o.Logger.Err(err, "error occurred while updating order statuses")
 		}
 	}
 

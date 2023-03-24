@@ -67,8 +67,9 @@ func (u *UserService) GetBalance(userID int) (balance Balance, err error) {
 		return balance, err
 	}
 
+	current := accrualSum - withdrawalSum
 	return Balance{
-		Current:   accrualSum - withdrawalSum,
-		Withdrawn: withdrawalSum,
+		Current:   current.AsFloat(),
+		Withdrawn: withdrawalSum.AsFloat(),
 	}, err
 }

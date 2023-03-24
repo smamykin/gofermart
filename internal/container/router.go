@@ -1,6 +1,7 @@
 package container
 
 import (
+	"github.com/smamykin/gofermart/internal/controller"
 	"github.com/smamykin/gofermart/pkg/token"
 	"net/http"
 
@@ -32,7 +33,7 @@ func jwtAuthMiddleware(apiSecret []byte) func(c *gin.Context) {
 			c.Abort()
 			return
 		}
-		c.Set("current_user_id", userID)
+		controller.SetCurrentUserIDToContext(userID, c)
 		c.Next()
 	}
 }

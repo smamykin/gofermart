@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/rs/zerolog"
 	"github.com/smamykin/gofermart/internal/container"
@@ -21,11 +22,13 @@ func main() {
 
 	logger.Info().Msgf("service started with configuration %#v", c.Config())
 
-	go utils.InvokeFunctionWithInterval(c.Config().UpdateStatusInterval, func() {
+	ctx, cancel := context.WithCancel(context.Background())
+	go utils.InvokeFunctionWithInterval(ctx, c.Config().UpdateStatusInterval, func() {
 		logger.Info().Msgf("update of statuses is started")
 		err := c.OrderService().UpdateOrdersStatuses()
 		if err != nil {
 			logger.Error().Err(err).Msgf("cannot update status")
+			cancel()
 		}
 	})
 

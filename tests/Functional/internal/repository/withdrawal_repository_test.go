@@ -3,6 +3,7 @@ package repository
 import (
 	"github.com/smamykin/gofermart/internal/entity"
 	"github.com/smamykin/gofermart/internal/service"
+	"github.com/smamykin/gofermart/pkg/money"
 	"github.com/smamykin/gofermart/tests/Functional/utils"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -19,7 +20,7 @@ func TestWithdrawalRepository_AddWithdrawal(t *testing.T) {
 	expectedWithdrawal := entity.Withdrawal{
 		UserID:      user.ID,
 		OrderNumber: "123",
-		Amount:      33,
+		Amount:      money.FromFloat(33.),
 	}
 	timeMin := time.Now()
 	actualWithdrawal, err := sut.AddWithdrawal(expectedWithdrawal)
@@ -50,25 +51,25 @@ func TestWithdrawalRepository_GetAmountSumByUserId(t *testing.T) {
 	//first check if there is no withdrawals at all
 	actualSum, err := sut.GetAmountSumByUserID(user.ID)
 	require.NoError(t, err)
-	require.Equal(t, .0, actualSum)
+	require.Equal(t, money.IntMoney(0), actualSum)
 
 	//second check if there are withdrawals
 	withdrawal0, err := sut.AddWithdrawal(entity.Withdrawal{
 		UserID:      user.ID,
 		OrderNumber: "111",
-		Amount:      11.1,
+		Amount:      money.FromFloat(11.1),
 	})
 	require.NoError(t, err)
 	withdrawal1, err := sut.AddWithdrawal(entity.Withdrawal{
 		UserID:      user.ID,
 		OrderNumber: "222",
-		Amount:      22.2,
+		Amount:      money.FromFloat(22.2),
 	})
 	require.NoError(t, err)
 	_, err = sut.AddWithdrawal(entity.Withdrawal{
 		UserID:      anotherUser.ID,
 		OrderNumber: "333",
-		Amount:      33.3,
+		Amount:      money.FromFloat(33.3),
 	})
 	require.NoError(t, err)
 
