@@ -46,27 +46,27 @@ func (mr *MockLoggerInterfaceMockRecorder) Debug(msg interface{}) *gomock.Call {
 }
 
 // Err mocks base method.
-func (m *MockLoggerInterface) Err(err error) {
+func (m *MockLoggerInterface) Err(err error, msg string) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "Err", err)
+	m.ctrl.Call(m, "Err", err, msg)
 }
 
 // Err indicates an expected call of Err.
-func (mr *MockLoggerInterfaceMockRecorder) Err(err interface{}) *gomock.Call {
+func (mr *MockLoggerInterfaceMockRecorder) Err(err, msg interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Err", reflect.TypeOf((*MockLoggerInterface)(nil).Err), err)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Err", reflect.TypeOf((*MockLoggerInterface)(nil).Err), err, msg)
 }
 
 // Fatal mocks base method.
-func (m *MockLoggerInterface) Fatal(err error) {
+func (m *MockLoggerInterface) Fatal(err error, msg string) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "Fatal", err)
+	m.ctrl.Call(m, "Fatal", err, msg)
 }
 
 // Fatal indicates an expected call of Fatal.
-func (mr *MockLoggerInterfaceMockRecorder) Fatal(err interface{}) *gomock.Call {
+func (mr *MockLoggerInterfaceMockRecorder) Fatal(err, msg interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Fatal", reflect.TypeOf((*MockLoggerInterface)(nil).Fatal), err)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Fatal", reflect.TypeOf((*MockLoggerInterface)(nil).Fatal), err, msg)
 }
 
 // Info mocks base method.
@@ -82,13 +82,13 @@ func (mr *MockLoggerInterfaceMockRecorder) Info(msg interface{}) *gomock.Call {
 }
 
 // Warn mocks base method.
-func (m *MockLoggerInterface) Warn(err error) {
+func (m *MockLoggerInterface) Warn(err error, msg string) {
 	m.ctrl.T.Helper()
-	m.ctrl.Call(m, "Warn", err)
+	m.ctrl.Call(m, "Warn", err, msg)
 }
 
 // Warn indicates an expected call of Warn.
-func (mr *MockLoggerInterfaceMockRecorder) Warn(err interface{}) *gomock.Call {
+func (mr *MockLoggerInterfaceMockRecorder) Warn(err, msg interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Warn", reflect.TypeOf((*MockLoggerInterface)(nil).Warn), err)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Warn", reflect.TypeOf((*MockLoggerInterface)(nil).Warn), err, msg)
 }

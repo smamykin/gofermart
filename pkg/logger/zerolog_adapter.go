@@ -14,14 +14,14 @@ func (z *ZeroLogAdapter) Info(msg string) {
 	z.Logger.Info().Msg(msg)
 }
 
-func (z *ZeroLogAdapter) Warn(err error) {
-	z.Logger.Warn().Stack().Err(err).Msg("")
+func (z *ZeroLogAdapter) Warn(err error, msg string) {
+	z.Logger.Warn().Err(err).Msg(msg)
 }
 
-func (z *ZeroLogAdapter) Err(err error) {
-	z.Logger.Error().Stack().Err(err).Msg("")
+func (z *ZeroLogAdapter) Err(err error, msg string) {
+	z.Logger.Error().Err(err).Msg("")
 }
 
-func (z *ZeroLogAdapter) Fatal(err error) {
-	z.Logger.Fatal().Stack().Err(err).Msg("")
+func (z *ZeroLogAdapter) Fatal(err error, msg string) {
+	z.Logger.Fatal().Err(err).Msg("")
 }

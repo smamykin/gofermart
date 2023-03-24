@@ -52,12 +52,12 @@ func (o *OrderService) UpdateOrdersStatuses() error {
 	for _, order := range orders {
 		accrualOrder, err := o.AccrualClient.GetOrder(order.OrderNumber)
 		if err != nil && !errors.Is(err, ErrEntityIsNotFound) {
-			o.Logger.Err(err)
+			o.Logger.Err(err, "error occurred while getting order from accrual service")
 			continue
 		}
 
 		if errors.Is(err, ErrEntityIsNotFound) {
-			o.Logger.Warn(err)
+			o.Logger.Warn(err, "the order is not found in the accrual service")
 		}
 
 		switch accrualOrder.Status {
@@ -80,7 +80,7 @@ func (o *OrderService) UpdateOrdersStatuses() error {
 
 		_, err = o.OrderRepository.UpdateOrder(order)
 		if err != nil {
-			o.Logger.Err(err)
+			o.Logger.Err(err, "error occurred while updating order statuses")
 		}
 	}
 

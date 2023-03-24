@@ -59,7 +59,7 @@ func (u *UserController) registerHandler(c *gin.Context) {
 	if err == nil {
 		tkn, err := token.Generate(user.ID, u.apiSecret, u.tokenLifespan)
 		if err != nil {
-			u.logger.Err(err)
+			u.logger.Err(err, "error occurred while generating an auth token after user's registration")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -73,7 +73,7 @@ func (u *UserController) registerHandler(c *gin.Context) {
 		return
 	}
 
-	u.logger.Err(err)
+	u.logger.Err(err, "unknown error while creating new user")
 	c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 }
 
@@ -92,7 +92,7 @@ func (u *UserController) loginHandler(c *gin.Context) {
 	}
 	tkn, err := token.Generate(user.ID, u.apiSecret, u.tokenLifespan)
 	if err != nil {
-		u.logger.Err(err)
+		u.logger.Err(err, "error occurred while generating an auth token after user's login")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -131,7 +131,7 @@ func (u *UserController) addOrderHandler(c *gin.Context) {
 			return
 		}
 
-		u.logger.Err(err)
+		u.logger.Err(err, "unknown error while adding the order")
 		c.JSON(http.StatusServiceUnavailable, gin.H{"message": err.Error()})
 		return
 	}
@@ -198,7 +198,7 @@ func (u *UserController) withdrawHandler(c *gin.Context) {
 			return
 		}
 
-		u.logger.Err(err)
+		u.logger.Err(err, "unknown error while withdrawing")
 		c.JSON(http.StatusServiceUnavailable, gin.H{"message": err.Error()})
 		return
 	}

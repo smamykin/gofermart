@@ -198,8 +198,8 @@ func TestOrderService_UpdateOrdersStatuses(t *testing.T) {
 func getLogMock(t *testing.T) contracts.LoggerInterface {
 	ctrl := gomock.NewController(t)
 	m := mock.NewMockLoggerInterface(ctrl)
-	m.EXPECT().Err(gomock.Any()).AnyTimes()
-	m.EXPECT().Warn(gomock.Any()).AnyTimes()
+	m.EXPECT().Err(gomock.Any(), gomock.Any()).AnyTimes()
+	m.EXPECT().Warn(gomock.Any(), gomock.Any()).AnyTimes()
 	return m
 }
 
