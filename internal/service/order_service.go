@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"github.com/ShiraazMoollatjie/goluhn"
 	"github.com/smamykin/gofermart/internal/entity"
 	"github.com/smamykin/gofermart/pkg/contracts"
@@ -50,9 +51,13 @@ func (o *OrderService) UpdateOrdersStatuses() error {
 	}
 	for _, order := range orders {
 		accrualOrder, err := o.AccrualClient.GetOrder(order.OrderNumber)
-		if err != nil {
+		if err != nil && !errors.Is(err, ErrEntityIsNotFound) {
 			o.Logger.Err(err)
 			continue
+		}
+
+		if errors.Is(err, ErrEntityIsNotFound) {
+			o.Logger.Warn(err)
 		}
 
 		switch accrualOrder.Status {

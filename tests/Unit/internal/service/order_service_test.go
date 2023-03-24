@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"github.com/golang/mock/gomock"
 	"github.com/smamykin/gofermart/internal/entity"
 	"github.com/smamykin/gofermart/internal/service"
@@ -198,6 +199,7 @@ func getLogMock(t *testing.T) contracts.LoggerInterface {
 	ctrl := gomock.NewController(t)
 	m := mock.NewMockLoggerInterface(ctrl)
 	m.EXPECT().Err(gomock.Any()).AnyTimes()
+	m.EXPECT().Warn(gomock.Any()).AnyTimes()
 	return m
 }
 
@@ -212,7 +214,12 @@ func getAccrualClientMock(t *testing.T, ordersFromClient []service.AccrualOrder)
 			calls = append(calls, call)
 			continue
 		}
-		call := m.EXPECT().GetOrder(gomock.Eq(accrualOrder.Order)).Return(accrualOrder, nil)
+
+		var err error
+		if accrualOrder.Status == entity.AccrualStatusUnregistered {
+			err = fmt.Errorf("order not found in accrual: %w", service.ErrEntityIsNotFound)
+		}
+		call := m.EXPECT().GetOrder(gomock.Eq(accrualOrder.Order)).Return(accrualOrder, err)
 		calls = append(calls, call)
 	}
 	gomock.InOrder(calls...)
