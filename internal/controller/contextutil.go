@@ -1,17 +1,20 @@
 package controller
 
-import "github.com/gin-gonic/gin"
+import (
+	"errors"
+	"github.com/gin-gonic/gin"
+)
 
 const (
 	ctxKeyCurrentUserId = "current_user_id"
 )
 
-func GetCurrentUserIDFromContext(c *gin.Context) int {
+func GetCurrentUserIDFromContext(c *gin.Context) (int, error) {
 	currentUserID := c.GetInt(ctxKeyCurrentUserId)
 	if currentUserID <= 0 {
-		panic("cannot get current user id. check the endpoint is protected.")
+		return 0, errors.New("cannot get current user id. check the endpoint is protected")
 	}
-	return currentUserID
+	return currentUserID, nil
 }
 
 func SetCurrentUserIDToContext(userID int, c *gin.Context) {
