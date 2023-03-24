@@ -144,6 +144,7 @@ func (u *UserController) orderListHandler(c *gin.Context) {
 	userID := GetCurrentUserIDFromContext(c)
 	orders, err := u.orderService.GetAllOrdersByUserID(userID)
 	if err != nil {
+		u.logger.Err(err, "error while getting orders of the user")
 		c.AbortWithStatusJSON(http.StatusServiceUnavailable, gin.H{"message": err.Error()})
 		return
 	}
@@ -171,6 +172,7 @@ func (u *UserController) balanceHandler(c *gin.Context) {
 
 	balance, err := u.userService.GetBalance(userID)
 	if err != nil {
+		u.logger.Err(err, "error while getting user's balance")
 		c.AbortWithStatusJSON(http.StatusServiceUnavailable, gin.H{"message": err.Error()})
 		return
 	}
@@ -211,6 +213,7 @@ func (u *UserController) withdrawalListHandler(c *gin.Context) {
 	userID := GetCurrentUserIDFromContext(c)
 	withdrawals, err := u.withdrawalService.GetAllWithdrawalByUserID(userID)
 	if err != nil {
+		u.logger.Err(err, "error while getting all withdrawals of the user")
 		c.AbortWithStatusJSON(http.StatusServiceUnavailable, gin.H{"message": err.Error()})
 		return
 	}
