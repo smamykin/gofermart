@@ -75,7 +75,6 @@ func (u *UserController) registerHandler(c *gin.Context) {
 
 	c.Header("Authorization", fmt.Sprintf("Bearer %s", tkn))
 	c.JSON(http.StatusOK, gin.H{"message": "success"})
-	return
 }
 
 func (u *UserController) loginHandler(c *gin.Context) {

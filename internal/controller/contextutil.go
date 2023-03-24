@@ -6,11 +6,11 @@ import (
 )
 
 const (
-	ctxKeyCurrentUserId = "current_user_id"
+	ctxKeyCurrentUserID = "current_user_id"
 )
 
 func GetCurrentUserIDFromContext(c *gin.Context) (int, error) {
-	currentUserID := c.GetInt(ctxKeyCurrentUserId)
+	currentUserID := c.GetInt(ctxKeyCurrentUserID)
 	if currentUserID <= 0 {
 		return 0, errors.New("cannot get current user id. check the endpoint is protected")
 	}
@@ -18,5 +18,5 @@ func GetCurrentUserIDFromContext(c *gin.Context) (int, error) {
 }
 
 func SetCurrentUserIDToContext(userID int, c *gin.Context) {
-	c.Set(ctxKeyCurrentUserId, userID)
+	c.Set(ctxKeyCurrentUserID, userID)
 }
