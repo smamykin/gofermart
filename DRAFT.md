@@ -2,6 +2,10 @@
 
 ## Use cases
 
+![Use cases](./use_cases.png "Use cases")
+<details>
+  <summary>plant uml code of image</summary>
+
 ```puml
 @startuml
 skinparam actorStyle awesome
@@ -44,7 +48,14 @@ U ..> M_DH : 8
 @enduml
 ```
 
+</details>
+
 ## Model
+
+![Model](./model.png "Model")
+
+<details>
+  <summary>plant uml code of image</summary>
 
 ```puml
 @startuml
@@ -62,7 +73,7 @@ namespace Gofermart {
         orderNumber string
         status int
         accrualStatus: int
-        accrual int
+        accrual Money
         created_at datetime
     }
 '    entity "BalanceAction" as BA {
@@ -79,7 +90,7 @@ namespace Gofermart {
         id int
         userId int
         orderNumber string
-        amount float
+        amount Money
         created_at datetime
     }
 }
@@ -102,7 +113,13 @@ O1 "1"--"1" O2 : read >
 @enduml
 ```
 
+</details>
+
 ## Classes
+![Classes](./classes.png "Classes")
+
+<details>
+  <summary>plant uml code of image</summary>
 
 ```puml
 @startuml
@@ -178,6 +195,8 @@ BL.S.C.WRI <|. R.WR
 
 @enduml
 ```
+
+</details>
 
 ## Status mapping on accrual
 

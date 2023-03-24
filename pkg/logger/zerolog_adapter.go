@@ -19,9 +19,9 @@ func (z *ZeroLogAdapter) Warn(err error, msg string) {
 }
 
 func (z *ZeroLogAdapter) Err(err error, msg string) {
-	z.Logger.Error().Err(err).Msg("")
+	z.Logger.Error().Err(err).Msg(msg)
 }
 
 func (z *ZeroLogAdapter) Fatal(err error, msg string) {
-	z.Logger.Fatal().Err(err).Msg("")
+	z.Logger.Fatal().Err(err).Msg(msg)
 }
