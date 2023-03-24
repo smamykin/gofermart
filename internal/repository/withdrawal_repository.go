@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/smamykin/gofermart/internal/entity"
 	"github.com/smamykin/gofermart/internal/service"
+	"github.com/smamykin/gofermart/pkg/money"
 	"time"
 )
 
@@ -93,9 +94,9 @@ func (w *WithdrawalRepository) GetWithdrawal(ID int) (withdrawal entity.Withdraw
 	return withdrawal, err
 }
 
-func (w *WithdrawalRepository) GetAmountSumByUserID(userID int) (sum float64, err error) {
+func (w *WithdrawalRepository) GetAmountSumByUserID(userID int) (sum money.IntMoney, err error) {
 	row := w.db.QueryRow(`
-		SELECT COALESCE(SUM(amount), 0.00)
+		SELECT COALESCE(SUM(amount), 0)
 		FROM withdrawal
 		WHERE user_id = $1
 	`, userID)

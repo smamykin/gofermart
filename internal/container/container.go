@@ -167,7 +167,7 @@ func ensureSchemaExists(db *sql.DB) error {
 		    "order_number" VARCHAR NOT NULL,
 		    "status" INTEGER NOT NULL,
 		    "accrual_status" INTEGER NOT NULL,
-		    "accrual" DOUBLE PRECISION NOT NULL,
+		    "accrual" INTEGER NOT NULL,
 		    "created_at" TIMESTAMP NOT NULL,
 			CONSTRAINT fk_order_user
 			    FOREIGN KEY(user_id) 
@@ -182,7 +182,7 @@ func ensureSchemaExists(db *sql.DB) error {
 		    "id" SERIAL PRIMARY KEY,
 			"user_id" INTEGER NOT NULL,
 		    "order_number" VARCHAR NOT NULL,
-		    "amount" DOUBLE PRECISION NOT NULL,
+		    "amount" INTEGER NOT NULL,
 		    "created_at" TIMESTAMP NOT NULL,
 			CONSTRAINT fk_withdrawal_user
 			    FOREIGN KEY(user_id) 

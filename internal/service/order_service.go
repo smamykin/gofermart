@@ -5,6 +5,7 @@ import (
 	"github.com/ShiraazMoollatjie/goluhn"
 	"github.com/smamykin/gofermart/internal/entity"
 	"github.com/smamykin/gofermart/pkg/contracts"
+	"github.com/smamykin/gofermart/pkg/money"
 )
 
 type OrderService struct {
@@ -74,7 +75,7 @@ func (o *OrderService) UpdateOrdersStatuses() error {
 		}
 
 		order.AccrualStatus = accrualOrder.Status
-		order.Accrual = accrualOrder.Accrual
+		order.Accrual = money.FromFloat(accrualOrder.Accrual)
 
 		_, err = o.OrderRepository.UpdateOrder(order)
 		if err != nil {

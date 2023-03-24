@@ -1,13 +1,17 @@
 package service
 
-import "github.com/smamykin/gofermart/internal/entity"
+import (
+	"github.com/smamykin/gofermart/internal/entity"
+	"github.com/smamykin/gofermart/pkg/money"
+)
 
 type WithdrawalService struct {
 	WithdrawalRepository WithdrawalRepositoryInterface
 	OrderRepository      OrderRepositoryInterface
 }
 
-func (w *WithdrawalService) Withdraw(userID int, amount float64, orderNumber string) (withdrawal entity.Withdrawal, err error) {
+func (w *WithdrawalService) Withdraw(userID int, amountToWithdraw float64, orderNumber string) (withdrawal entity.Withdrawal, err error) {
+	amount := money.FromFloat(amountToWithdraw)
 	err = orderNumberValidation(orderNumber)
 	if err != nil {
 		return entity.Withdrawal{}, err
@@ -30,6 +34,7 @@ func (w *WithdrawalService) Withdraw(userID int, amount float64, orderNumber str
 	if err != nil {
 		return entity.Withdrawal{}, err
 	}
+
 	if (accrualSum - withdrawalSum - amount) < 0 {
 		return entity.Withdrawal{}, ErrNotEnoughAccrual
 	}

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/smamykin/gofermart/internal/entity"
 	"github.com/smamykin/gofermart/internal/service"
+	"github.com/smamykin/gofermart/pkg/money"
 	"time"
 )
 
@@ -189,9 +190,9 @@ func (o *OrderRepository) GetOrdersWithUnfinishedStatus() ([]entity.Order, error
 	return orders, nil
 }
 
-func (o *OrderRepository) GetAccrualSumByUserID(userID int) (sum float64, err error) {
+func (o *OrderRepository) GetAccrualSumByUserID(userID int) (sum money.IntMoney, err error) {
 	row := o.db.QueryRow(`
-		SELECT COALESCE(SUM(accrual), 0.00)
+		SELECT COALESCE(SUM(accrual), 0)
 		FROM "order"
 		WHERE user_id = $1
 	`, userID)

@@ -159,7 +159,7 @@ func (u *UserController) orderListHandler(c *gin.Context) {
 		orderResponseModel := OrderResponseModel{
 			Number:     order.OrderNumber,
 			Status:     order.Status.String(),
-			Accrual:    order.Accrual,
+			Accrual:    order.Accrual.AsFloat(),
 			UploadedAt: order.CreatedAt.Format(time.RFC3339),
 		}
 		orderResponseModels = append(orderResponseModels, orderResponseModel)
@@ -237,7 +237,7 @@ func (u *UserController) withdrawalListHandler(c *gin.Context) {
 	for _, withdrawal := range withdrawals {
 		responseModel := WithdrawalResponseModel{
 			OrderNumber: withdrawal.OrderNumber,
-			Amount:      withdrawal.Amount,
+			Amount:      withdrawal.Amount.AsFloat(),
 			ProcessedAt: withdrawal.CreatedAt.Format(time.RFC3339),
 		}
 		responseModels = append(responseModels, responseModel)

@@ -5,6 +5,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/smamykin/gofermart/internal/entity"
 	"github.com/smamykin/gofermart/internal/service"
+	"github.com/smamykin/gofermart/pkg/money"
 	mock "github.com/smamykin/gofermart/tests/mock"
 	"github.com/stretchr/testify/require"
 	"testing"
@@ -17,7 +18,7 @@ func TestWithdrawalService_Withdraw(t *testing.T) {
 	expectedWithdrawal := entity.Withdrawal{
 		UserID:      userID,
 		OrderNumber: orderNumber,
-		Amount:      amount,
+		Amount:      money.FromFloat(amount),
 	}
 
 	type testCase struct {
@@ -78,7 +79,7 @@ func TestWithdrawalService_Withdraw(t *testing.T) {
 			orderNumber: "123",
 			Amount:      amount,
 			sut: service.WithdrawalService{
-				WithdrawalRepository: getWithdrawalRepositoryMock(t, entity.Withdrawal{OrderNumber: "123", Amount: amount}, nil, nil, 0),
+				WithdrawalRepository: getWithdrawalRepositoryMock(t, entity.Withdrawal{OrderNumber: "123", Amount: money.FromFloat(amount)}, nil, nil, 0),
 				OrderRepository:      getOrderRepositoryMockForWithdraw(t, userID, amount+1),
 			},
 			expectedWithdrawal: entity.Withdrawal{},
@@ -132,7 +133,7 @@ func getWithdrawalRepositoryMock(
 
 	m.EXPECT().GetWithdrawalByOrderNumber(gomock.Eq(withdrawal.OrderNumber)).AnyTimes().Return(withdrawal, getWithdrawalWillReturnErr)
 
-	m.EXPECT().GetAmountSumByUserID(gomock.Eq(withdrawal.UserID)).AnyTimes().Return(getAmountSumByUserIDWillReturn, nil)
+	m.EXPECT().GetAmountSumByUserID(gomock.Eq(withdrawal.UserID)).AnyTimes().Return(money.FromFloat(getAmountSumByUserIDWillReturn), nil)
 
 	return m
 }
@@ -145,7 +146,7 @@ func getOrderRepositoryMockForWithdraw(
 	ctrl := gomock.NewController(t)
 	m := mock.NewMockOrderRepositoryInterface(ctrl)
 
-	m.EXPECT().GetAccrualSumByUserID(gomock.Eq(userID)).AnyTimes().Return(getAmountSumByUserIDWillReturn, nil)
+	m.EXPECT().GetAccrualSumByUserID(gomock.Eq(userID)).AnyTimes().Return(money.FromFloat(getAmountSumByUserIDWillReturn), nil)
 
 	return m
 }

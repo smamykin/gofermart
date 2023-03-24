@@ -1,6 +1,9 @@
 package entity
 
-import "time"
+import (
+	"github.com/smamykin/gofermart/pkg/money"
+	"time"
+)
 
 type Status int
 
@@ -62,6 +65,6 @@ type Order struct {
 	OrderNumber   string
 	Status        Status
 	AccrualStatus AccrualStatus
-	Accrual       float64
+	Accrual       money.IntMoney
 	CreatedAt     time.Time
 }
