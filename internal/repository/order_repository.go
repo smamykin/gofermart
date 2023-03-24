@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"errors"
 	"github.com/smamykin/gofermart/internal/entity"
 	"github.com/smamykin/gofermart/internal/service"
 	"time"
@@ -162,7 +163,7 @@ func hydrateOrder(row *sql.Row) (order entity.Order, err error) {
 
 	err = row.Scan(&order.ID, &order.UserID, &order.OrderNumber, &order.Status, &order.AccrualStatus, &order.Accrual, &order.CreatedAt)
 
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return order, service.ErrEntityIsNotFound
 	}
 

@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"errors"
 	"github.com/smamykin/gofermart/internal/entity"
 	"github.com/smamykin/gofermart/internal/service"
 	"time"
@@ -104,7 +105,7 @@ func hydrateWithdrawal(row *sql.Row) (withdrawal entity.Withdrawal, err error) {
 
 	err = row.Scan(&withdrawal.ID, &withdrawal.UserID, &withdrawal.OrderNumber, &withdrawal.Amount, &withdrawal.CreatedAt)
 
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		return withdrawal, service.ErrEntityIsNotFound
 	}
 

@@ -52,24 +52,24 @@ func (u *UserController) registerHandler(c *gin.Context) {
 	var credentials service.Credentials
 	err := c.ShouldBindJSON(&credentials)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	user, err := u.userService.CreateNewUser(credentials)
 	if errors.Is(err, service.ErrPwdIsNotValid) || errors.Is(err, service.ErrLoginIsNotValid) {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	if err != nil {
 		u.logger.Err(err, "unknown error while creating new user")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	tkn, err := token.Generate(user.ID, u.apiSecret, u.tokenLifespan)
 	if err != nil {
 		u.logger.Err(err, "error occurred while generating an auth token after user's registration")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -82,19 +82,19 @@ func (u *UserController) loginHandler(c *gin.Context) {
 	var credentials service.Credentials
 	err := c.ShouldBindJSON(&credentials)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	user, err := u.userService.GetUserIfPwdValid(credentials)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 	tkn, err := token.Generate(user.ID, u.apiSecret, u.tokenLifespan)
 	if err != nil {
 		u.logger.Err(err, "error occurred while generating an auth token after user's login")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -106,34 +106,34 @@ func (u *UserController) addOrderHandler(c *gin.Context) {
 	currentUserID := GetCurrentUserIDFromContext(c)
 	body, err := c.GetRawData()
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "cannot read body"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "cannot read body"})
 		return
 	}
 
 	orderNumber := string(body)
 	if orderNumber == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"message": "cannot fetch an order number from the  body"})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "cannot fetch an order number from the  body"})
 		return
 	}
 	order, err := u.orderService.AddOrder(currentUserID, orderNumber)
-	if err == service.ErrEntityAlreadyExists {
+	if errors.Is(err, service.ErrEntityAlreadyExists) {
 		if order.UserID == currentUserID {
-			c.JSON(http.StatusOK, gin.H{"message": "order already exists"})
+			c.AbortWithStatusJSON(http.StatusOK, gin.H{"message": "order already exists"})
 			return
 		}
 
-		c.JSON(http.StatusConflict, gin.H{"message": "order already exists"})
+		c.AbortWithStatusJSON(http.StatusConflict, gin.H{"message": "order already exists"})
 		return
 	}
 
-	if err == service.ErrInvalidOrderNumber {
-		c.JSON(http.StatusUnprocessableEntity, gin.H{"message": err.Error()})
+	if errors.Is(err, service.ErrInvalidOrderNumber) {
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{"message": err.Error()})
 		return
 	}
 
 	if err != nil {
 		u.logger.Err(err, "unknown error while adding the order")
-		c.JSON(http.StatusServiceUnavailable, gin.H{"message": err.Error()})
+		c.AbortWithStatusJSON(http.StatusServiceUnavailable, gin.H{"message": err.Error()})
 		return
 	}
 
@@ -183,24 +183,24 @@ func (u *UserController) withdrawHandler(c *gin.Context) {
 	var withdrawalRequestModel WithdrawalRequestModel
 	err := c.ShouldBindJSON(&withdrawalRequestModel)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	withdraw, err := u.withdrawalService.Withdraw(userID, withdrawalRequestModel.Amount, withdrawalRequestModel.OrderNumber)
-	if err == service.ErrEntityAlreadyExists {
-		c.JSON(http.StatusConflict, gin.H{"message": "order already exists"})
+	if errors.Is(err, service.ErrEntityAlreadyExists) {
+		c.AbortWithStatusJSON(http.StatusConflict, gin.H{"message": "order already exists"})
 		return
 	}
 
-	if err == service.ErrInvalidOrderNumber {
-		c.JSON(http.StatusUnprocessableEntity, gin.H{"message": err.Error()})
+	if errors.Is(err, service.ErrInvalidOrderNumber) {
+		c.AbortWithStatusJSON(http.StatusUnprocessableEntity, gin.H{"message": err.Error()})
 		return
 	}
 
 	if err != nil {
 		u.logger.Err(err, "unknown error while withdrawing")
-		c.JSON(http.StatusServiceUnavailable, gin.H{"message": err.Error()})
+		c.AbortWithStatusJSON(http.StatusServiceUnavailable, gin.H{"message": err.Error()})
 		return
 	}
 
