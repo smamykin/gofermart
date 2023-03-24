@@ -61,9 +61,7 @@ func (o *OrderService) UpdateOrdersStatuses() error {
 		}
 
 		switch accrualOrder.Status {
-		case entity.AccrualStatusRegistered:
-			fallthrough
-		case entity.AccrualStatusProcessing:
+		case entity.AccrualStatusRegistered, entity.AccrualStatusProcessing:
 			order.Status = entity.OrderStatusProcessing
 		case entity.AccrualStatusInvalid:
 			order.Status = entity.OrderStatusInvalid
