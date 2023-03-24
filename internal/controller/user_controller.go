@@ -102,7 +102,7 @@ func (u *UserController) loginHandler(c *gin.Context) {
 }
 
 func (u *UserController) addOrderHandler(c *gin.Context) {
-	currentUserID := getCurrentUserIDFromContext(c)
+	currentUserID := GetCurrentUserIDFromContext(c)
 	body, err := c.GetRawData()
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "cannot read body"})
@@ -140,7 +140,7 @@ func (u *UserController) addOrderHandler(c *gin.Context) {
 }
 
 func (u *UserController) orderListHandler(c *gin.Context) {
-	userID := getCurrentUserIDFromContext(c)
+	userID := GetCurrentUserIDFromContext(c)
 	orders, err := u.orderService.GetAllOrdersByUserID(userID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusServiceUnavailable, gin.H{"message": err.Error()})
@@ -166,7 +166,7 @@ func (u *UserController) orderListHandler(c *gin.Context) {
 }
 
 func (u *UserController) balanceHandler(c *gin.Context) {
-	userID := getCurrentUserIDFromContext(c)
+	userID := GetCurrentUserIDFromContext(c)
 
 	balance, err := u.userService.GetBalance(userID)
 	if err != nil {
@@ -178,7 +178,7 @@ func (u *UserController) balanceHandler(c *gin.Context) {
 }
 
 func (u *UserController) withdrawHandler(c *gin.Context) {
-	userID := getCurrentUserIDFromContext(c)
+	userID := GetCurrentUserIDFromContext(c)
 	var withdrawalRequestModel WithdrawalRequestModel
 	err := c.ShouldBindJSON(&withdrawalRequestModel)
 	if err != nil {
@@ -206,7 +206,7 @@ func (u *UserController) withdrawHandler(c *gin.Context) {
 }
 
 func (u *UserController) withdrawalListHandler(c *gin.Context) {
-	userID := getCurrentUserIDFromContext(c)
+	userID := GetCurrentUserIDFromContext(c)
 	withdrawals, err := u.withdrawalService.GetAllWithdrawalByUserID(userID)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusServiceUnavailable, gin.H{"message": err.Error()})
@@ -228,18 +228,6 @@ func (u *UserController) withdrawalListHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, responseModels)
-}
-
-func getCurrentUserIDFromContext(c *gin.Context) int {
-	currentUserIDAsAny, ok := c.Get("current_user_id")
-	if !ok {
-		panic("cannot get current user id. check the endpoint is protected.")
-	}
-	if ID, ok := currentUserIDAsAny.(int); ok {
-		return ID
-	}
-
-	panic("cannot get current user id.")
 }
 
 type OrderResponseModel struct {
